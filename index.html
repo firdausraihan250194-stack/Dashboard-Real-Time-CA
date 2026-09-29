@@ -238,9 +238,8 @@
                 const key = keys.find(k => /SEGMENT|INDUSTRI/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
-            // MENDETEKSI SELURUH VARIASI HEADER NAMA KOLOM AR / OVERDUE
             if (fieldType === 'ar') {
-                const key = keys.find(k => /AR|OVERDUE|AGEING|DAYS|HARI|30/i.test(k));
+                const key = keys.find(k => /AR > 30|AR_30|AR30|^AR$/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
             return '';
@@ -370,26 +369,17 @@
             const uniqueOwners = new Set(filteredData.map(d => getFieldValue(d, 'owner')).filter(Boolean));
             document.getElementById('kpi-total-owner').innerText = uniqueOwners.size;
 
-            // PENGHITUNGAN EKSPILISIT FLEKSIBEL UNTUK DATA AR > 30
+            // LOGIKA AKURAT MEMBACA SEL BERNILAI 1, >0, YA, ATAU TRUE DARI KOLOM "AR > 30"
             let arCount = 0;
             filteredData.forEach(row => {
-                // Periksa seluruh kolom di baris jika mengandung istilah AR > 30
-                let isAR = false;
-                for (let k in row) {
-                    if (/AR|OVERDUE|AGEING|DAYS|HARI/i.test(k)) {
-                        const val = String(row[k]).trim();
-                        const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
-                        
-                        if (!isNaN(num) && num > 30) {
-                            isAR = true;
-                            break;
-                        } else if (/ya|yes|>30|> 30|true|overdue|macet/i.test(val)) {
-                            isAR = true;
-                            break;
-                        }
-                    }
+                const arVal = getFieldValue(row, 'ar');
+                const numVal = parseFloat(arVal.replace(/[^0-9.-]/g, ''));
+                
+                if (!isNaN(numVal) && numVal > 0) {
+                    arCount++;
+                } else if (/ya|yes|>0|true|overdue/i.test(arVal)) {
+                    arCount++;
                 }
-                if (isAR) arCount++;
             });
 
             const arPercentage = totalKontrak > 0 ? ((arCount / totalKontrak) * 100).toFixed(1) : "0.0";
