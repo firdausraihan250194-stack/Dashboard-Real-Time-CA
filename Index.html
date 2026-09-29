@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Dashboard Sebaran & Customer - Bowheer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-600/30 text-indigo-400 rounded-xl border border-indigo-500/30">
+                    <i class="fa-solid fa-chart-line text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-tight">Executive Dashboard Sebaran & Customer</h1>
+                    <p class="text-xs text-slate-400">Monitoring Realtime Unit, Project Owner, & Wilayah Indonesia</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 flex-wrap justify-end">
+                <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-300">
+                    <span id="sync-status-indicator" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                    <span id="sync-status-text">Menghubungkan...</span>
+                </div>
+
+                <button id="btn-sync" onclick="fetchGoogleSheetData()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+                    <i class="fa-solid fa-rotate-right" id="sync-icon"></i>
+                    <span>Sync Sekarang</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- FILTER SECTION -->
+        <section class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-sm">
+            <div class="flex items-center gap-2 text-sm text-slate-300 font-medium">
+                <i class="fa-solid fa-filter text-indigo-400"></i>
+                <span>Filter Data:</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3 w-full lg:w-auto flex-grow">
+                <div>
+                    <select id="filter-segment" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="">Semua Segment</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="filter-customer" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="">Semua Customer</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="filter-lokasi" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="">Semua Lokasi Kota</option>
+                    </select>
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                    <input type="text" id="search-input" onkeyup="applyFilters()" placeholder="Cari nama, No Kontrak, Owner..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl pl-8 pr-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+            </div>
+
+            <button onclick="resetFilters()" class="px-3 py-2 text-xs text-slate-400 hover:text-white transition flex items-center gap-1.5 self-end lg:self-center">
+                <i class="fa-solid fa-arrows-rotate"></i> Reset
+            </button>
+        </section>
+
+        <!-- KPI SUMMARY CARDS -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">TOTAL KONTRAK</p>
+                <h3 id="kpi-total-unit" class="text-2xl lg:text-3xl font-bold text-white mt-1">0</h3>
+                <p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-check-circle"></i> Transaksi/Unit aktif
+                </p>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Customer</p>
+                <h3 id="kpi-total-customer" class="text-2xl lg:text-3xl font-bold text-indigo-400 mt-1">0</h3>
+                <p class="text-[11px] text-slate-400 mt-1">Entitas customer unik</p>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Project Owner</p>
+                <h3 id="kpi-total-owner" class="text-2xl lg:text-3xl font-bold text-amber-400 mt-1">0</h3>
+                <p class="text-[11px] text-slate-400 mt-1">Perusahaan pemilik project</p>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">AR > 30</p>
+                <h3 id="kpi-ar-30" class="text-2xl lg:text-3xl font-bold text-rose-400 mt-1">0%</h3>
+                <p id="kpi-ar-30-sub" class="text-[11px] text-slate-400 mt-1">0 dari 0 Kontrak</p>
+            </div>
+        </section>
+
+        <!-- CHARTS SECTION (TOP 10 CUSTOMER & OWNER) -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 flex flex-col">
+                <h2 class="text-base font-semibold text-white flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-trophy text-amber-400"></i> Top 10 Customer
+                </h2>
+                <div class="relative flex-grow min-h-[280px]">
+                    <canvas id="chart-top-customer"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 flex flex-col">
+                <h2 class="text-base font-semibold text-white flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-briefcase text-emerald-400"></i> Top 10 Project Owner
+                </h2>
+                <div class="relative flex-grow min-h-[280px]">
+                    <canvas id="chart-top-owner"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEBARAN WILAYAH & SEGMENT INDUSTRY SECTION -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 flex flex-col">
+                <h2 class="text-base font-semibold text-white flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-map-location-dot text-cyan-400"></i> Sebaran Wilayah Indonesia (Top 10)
+                </h2>
+                <div class="relative flex-grow min-h-[280px]">
+                    <canvas id="chart-sebaran-wilayah"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-semibold text-white flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-chart-pie text-fuchsia-400"></i> Distribusi Segment Industry
+                    </h2>
+                    <div class="relative h-[200px] flex items-center justify-center">
+                        <canvas id="chart-segment"></canvas>
+                    </div>
+                </div>
+                <div id="segment-legend" class="mt-4 pt-4 border-t border-slate-700/60 space-y-2 text-xs"></div>
+            </div>
+        </section>
+
+        <!-- DATABASE TABLE -->
+        <section class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-table-list text-slate-400"></i> Rincian Database Unit & Proyek
+                </h2>
+                <div class="flex items-center gap-2">
+                    <span id="table-row-count" class="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg">0 Baris</span>
+                    <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs text-slate-200 rounded-lg transition">
+                        <i class="fa-solid fa-file-csv"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar border border-slate-700/60 rounded-xl">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-900/90 text-slate-400 font-medium uppercase tracking-wider border-b border-slate-700">
+                        <tr>
+                            <th class="px-3 py-3">No</th>
+                            <th class="px-3 py-3">NO KONTRAK</th>
+                            <th class="px-3 py-3">NAMA CUSTOMER</th>
+                            <th class="px-3 py-3 text-center">TOTAL KONTRAK</th>
+                            <th class="px-3 py-3">PRODUCT</th>
+                            <th class="px-3 py-3">DIRECT BOWHEER</th>
+                            <th class="px-3 py-3">PROJECT OWNER</th>
+                            <th class="px-3 py-3">LOKASI PROJECT</th>
+                            <th class="px-3 py-3">SEGMENT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-700/50 bg-slate-800/40"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const SPREADSHEET_ID = '1VUCL0zZIhNrc6X3bhWJL_hIDrKnhZXJm38DPCM2YHMU';
+        const GOOGLE_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`;
+
+        let rawData = [];
+        let filteredData = [];
+        let chartCustomer = null;
+        let chartOwner = null;
+        let chartWilayah = null;
+        let chartSegment = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchGoogleSheetData();
+        });
+
+        function getFieldValue(row, fieldType) {
+            if (!row) return '';
+            const keys = Object.keys(row);
+
+            if (fieldType === 'no_kontrak') {
+                const key = keys.find(k => /NO_KONTRAK|NO KONTRAK|KONTRAK/i.test(k));
+                return key ? String(row[key]).trim() : '';
+            }
+            if (fieldType === 'customer') {
+                const key = keys.find(k => /NAMA_CUSTOMER|NAMA CUSTOMER|CUSTOMER/i.test(k));
+                return key ? String(row[key]).trim() : '';
+            }
+            if (fieldType === 'product') {
+                const key = keys.find(k => /PRODUCT|PRODUK|BARANG/i.test(k));
+                return key ? String(row[key]).trim() : '';
+            }
+            if (fieldType === 'bowheer') {
+                const key = keys.find(k => /DIRECT BOWHEER|BOWHEER/i.test(k));
+                return key ? String(row[key]).trim() : '';
+            }
+            if (fieldType === 'owner') {
+                const key = keys.find(k => /PROJECT OWNER|PROJECT_OWNER|OWNER/i.test(k));
+                return key ? String(row[key]).trim() : '';
+            }
+            if (fieldType === 'lokasi') {
+                const key = keys.find(k => /LOKASI|KOTA|WILAYAH/i.test(k));
+                return key ? String(row[key]).trim() : '';
+            }
+            if (fieldType === 'segment') {
+                const key = keys.find(k => /SEGMENT|INDUSTRI/i.test(k));
+                return key ? String(row[key]).trim() : '';
+            }
+            // MENDETEKSI SELURUH VARIASI HEADER NAMA KOLOM AR / OVERDUE
+            if (fieldType === 'ar') {
+                const key = keys.find(k => /AR|OVERDUE|AGEING|DAYS|HARI|30/i.test(k));
+                return key ? String(row[key]).trim() : '';
+            }
+            return '';
+        }
+
+        function fetchGoogleSheetData() {
+            updateSyncUI('loading', 'Menghubungkan ke Google Sheets...');
+
+            Papa.parse(GOOGLE_CSV_URL, {
+                download: true,
+                header: true,
+                skipEmptyLines: 'greedy',
+                complete: function(results) {
+                    if (results.data && results.data.length > 0) {
+                        rawData = results.data.filter(row => {
+                            const cust = getFieldValue(row, 'customer');
+                            const prod = getFieldValue(row, 'product');
+                            const owner = getFieldValue(row, 'owner');
+                            return cust !== '' || prod !== '' || owner !== '';
+                        });
+
+                        updateSyncUI('success', `Tersambung Live (${rawData.length} baris)`);
+                        processDataAndRender();
+                    } else {
+                        updateSyncUI('error', 'Gagal memuat data');
+                    }
+                },
+                error: function(err) {
+                    console.error('PapaParse error:', err);
+                    updateSyncUI('error', 'Gagal Sync Live');
+                }
+            });
+        }
+
+        function updateSyncUI(status, message) {
+            const indicator = document.getElementById('sync-status-indicator');
+            const text = document.getElementById('sync-status-text');
+            const icon = document.getElementById('sync-icon');
+
+            icon.classList.remove('fa-spin');
+
+            if (status === 'loading') {
+                indicator.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping';
+                text.innerText = message;
+                icon.classList.add('fa-spin');
+            } else if (status === 'success') {
+                indicator.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+                text.innerText = message;
+            } else {
+                indicator.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+                text.innerText = message;
+            }
+        }
+
+        function processDataAndRender() {
+            populateFilterDropdowns();
+            applyFilters();
+        }
+
+        function populateFilterDropdowns() {
+            const segments = [...new Set(rawData.map(d => getFieldValue(d, 'segment')).filter(Boolean))];
+            const customers = [...new Set(rawData.map(d => getFieldValue(d, 'customer')).filter(Boolean))];
+            const lokasis = [...new Set(rawData.map(d => getFieldValue(d, 'lokasi')).filter(Boolean))];
+
+            updateSelectOptions('filter-segment', segments, 'Semua Segment');
+            updateSelectOptions('filter-customer', customers, 'Semua Customer');
+            updateSelectOptions('filter-lokasi', lokasis, 'Semua Lokasi Kota');
+        }
+
+        function updateSelectOptions(elementId, items, defaultLabel) {
+            const select = document.getElementById(elementId);
+            const currentValue = select.value;
+            select.innerHTML = `<option value="">${defaultLabel}</option>`;
+            items.sort().forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item;
+                opt.textContent = item;
+                if (item === currentValue) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function applyFilters() {
+            const segVal = document.getElementById('filter-segment').value;
+            const custVal = document.getElementById('filter-customer').value;
+            const lokVal = document.getElementById('filter-lokasi').value;
+            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+
+            filteredData = rawData.filter(row => {
+                const rowCust = getFieldValue(row, 'customer');
+                const rowProd = getFieldValue(row, 'product');
+                const rowOwner = getFieldValue(row, 'owner');
+                const rowLokasi = getFieldValue(row, 'lokasi');
+                const rowSeg = getFieldValue(row, 'segment');
+                const rowKontrak = getFieldValue(row, 'no_kontrak');
+
+                const matchSeg = !segVal || rowSeg === segVal;
+                const matchCust = !custVal || rowCust === custVal;
+                const matchLok = !lokVal || rowLokasi === lokVal;
+                const searchHaystack = `${rowCust} ${rowOwner} ${rowProd} ${rowLokasi} ${rowSeg} ${rowKontrak}`.toLowerCase();
+                const matchSearch = !searchVal || searchHaystack.includes(searchVal);
+
+                return matchSeg && matchCust && matchLok && matchSearch;
+            });
+
+            renderKPIs();
+            renderCharts();
+            renderWilayahChart();
+            renderTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-segment').value = '';
+            document.getElementById('filter-customer').value = '';
+            document.getElementById('filter-lokasi').value = '';
+            document.getElementById('search-input').value = '';
+            applyFilters();
+        }
+
+        function renderKPIs() {
+            const totalKontrak = filteredData.length;
+            document.getElementById('kpi-total-unit').innerText = totalKontrak;
+
+            const uniqueCustomers = new Set(filteredData.map(d => getFieldValue(d, 'customer')).filter(Boolean));
+            document.getElementById('kpi-total-customer').innerText = uniqueCustomers.size;
+
+            const uniqueOwners = new Set(filteredData.map(d => getFieldValue(d, 'owner')).filter(Boolean));
+            document.getElementById('kpi-total-owner').innerText = uniqueOwners.size;
+
+            // PENGHITUNGAN EKSPILISIT FLEKSIBEL UNTUK DATA AR > 30
+            let arCount = 0;
+            filteredData.forEach(row => {
+                // Periksa seluruh kolom di baris jika mengandung istilah AR > 30
+                let isAR = false;
+                for (let k in row) {
+                    if (/AR|OVERDUE|AGEING|DAYS|HARI/i.test(k)) {
+                        const val = String(row[k]).trim();
+                        const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+                        
+                        if (!isNaN(num) && num > 30) {
+                            isAR = true;
+                            break;
+                        } else if (/ya|yes|>30|> 30|true|overdue|macet/i.test(val)) {
+                            isAR = true;
+                            break;
+                        }
+                    }
+                }
+                if (isAR) arCount++;
+            });
+
+            const arPercentage = totalKontrak > 0 ? ((arCount / totalKontrak) * 100).toFixed(1) : "0.0";
+            document.getElementById('kpi-ar-30').innerText = `${arPercentage}%`;
+            document.getElementById('kpi-ar-30-sub').innerText = `${arCount} dari ${totalKontrak} Kontrak`;
+        }
+
+        function countFrequency(dataArray, fieldType) {
+            const counts = {};
+            dataArray.forEach(item => {
+                const val = getFieldValue(item, fieldType);
+                if (val) counts[val] = (counts[val] || 0) + 1;
+            });
+            return counts;
+        }
+
+        function renderCharts() {
+            renderTopCustomerChart();
+            renderTopOwnerChart();
+            renderSegmentChart();
+        }
+
+        function renderTopCustomerChart() {
+            const counts = countFrequency(filteredData, 'customer');
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            
+            const labels = sorted.map(item => item[0]);
+            const values = sorted.map(item => item[1]);
+
+            if (chartCustomer) chartCustomer.destroy();
+            const ctx = document.getElementById('chart-top-customer').getContext('2d');
+            chartCustomer = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Unit',
+                        data: values,
+                        backgroundColor: 'rgba(99, 102, 241, 0.85)',
+                        borderColor: 'rgba(129, 140, 248, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(51, 65, 85, 0.5)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function renderTopOwnerChart() {
+            const counts = countFrequency(filteredData, 'owner');
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            
+            const labels = sorted.map(item => item[0]);
+            const values = sorted.map(item => item[1]);
+
+            if (chartOwner) chartOwner.destroy();
+            const ctx = document.getElementById('chart-top-owner').getContext('2d');
+            chartOwner = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Unit',
+                        data: values,
+                        backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                        borderColor: 'rgba(52, 211, 153, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(51, 65, 85, 0.5)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function renderWilayahChart() {
+            const customerCounts = countFrequency(filteredData, 'customer');
+            const top10Customers = new Set(Object.entries(customerCounts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(i => i[0]));
+
+            const ownerCounts = countFrequency(filteredData, 'owner');
+            const top10Owners = new Set(Object.entries(ownerCounts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(i => i[0]));
+
+            const topData = filteredData.filter(row => {
+                const cust = getFieldValue(row, 'customer');
+                const owner = getFieldValue(row, 'owner');
+                return top10Customers.has(cust) || top10Owners.has(owner);
+            });
+
+            const regionCounts = { "Jawa": 0, "Kalimantan": 0, "Sulawesi": 0, "Sumatera": 0, "Nusa Tenggara": 0, "Maluku & Papua": 0 };
+
+            topData.forEach(item => {
+                const loc = getFieldValue(item, 'lokasi').toLowerCase();
+                if (loc.includes('jawa') || loc.includes('jakarta') || loc.includes('surabaya') || loc.includes('bandung') || loc.includes('semarang') || loc.includes('banten')) regionCounts["Jawa"]++;
+                else if (loc.includes('kalimantan') || loc.includes('kutai') || loc.includes('samarinda') || loc.includes('balikpapan') || loc.includes('banjarmasin')) regionCounts["Kalimantan"]++;
+                else if (loc.includes('sulawesi') || loc.includes('konawe') || loc.includes('pomala') || loc.includes('makassar') || loc.includes('manado')) regionCounts["Sulawesi"]++;
+                else if (loc.includes('sumatera') || loc.includes('palembang') || loc.includes('bengkulu') || loc.includes('serang') || loc.includes('medan') || loc.includes('jambi') || loc.includes('riau')) regionCounts["Sumatera"]++;
+                else if (loc.includes('nusa') || loc.includes('bali') || loc.includes('lombok') || loc.includes('ntt') || loc.includes('ntb')) regionCounts["Nusa Tenggara"]++;
+                else if (loc.includes('papua') || loc.includes('maluku') || loc.includes('ambon') || loc.includes('jayapura')) regionCounts["Maluku & Papua"]++;
+                else regionCounts["Jawa"]++;
+            });
+
+            const totalTop = Object.values(regionCounts).reduce((a, b) => a + b, 0);
+            const sortedRegions = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]);
+
+            const labels = sortedRegions.map(r => {
+                const pct = totalTop > 0 ? ((r[1] / totalTop) * 100).toFixed(1) : 0;
+                return `${r[0]} (${pct}%)`;
+            });
+            const values = sortedRegions.map(r => r[1]);
+
+            if (chartWilayah) chartWilayah.destroy();
+            const ctx = document.getElementById('chart-sebaran-wilayah').getContext('2d');
+            chartWilayah = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Unit',
+                        data: values,
+                        backgroundColor: 'rgba(6, 182, 212, 0.85)',
+                        borderColor: 'rgba(34, 211, 238, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(51, 65, 85, 0.5)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 11, weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        function renderSegmentChart() {
+            const rawCounts = countFrequency(filteredData, 'segment');
+            const totalUnits = Object.values(rawCounts).reduce((a, b) => a + b, 0);
+
+            if (totalUnits === 0) return;
+
+            let groupedCounts = {};
+            let othersSum = 0;
+
+            Object.entries(rawCounts).forEach(([segName, count]) => {
+                const pct = (count / totalUnits) * 100;
+                if (pct >= 5 || segName.toLowerCase() === 'others') {
+                    groupedCounts[segName] = (groupedCounts[segName] || 0) + count;
+                } else {
+                    othersSum += count;
+                }
+            });
+
+            if (othersSum > 0) {
+                groupedCounts['Others'] = (groupedCounts['Others'] || 0) + othersSum;
+            }
+
+            const sortedSegments = Object.entries(groupedCounts).sort((a, b) => b[1] - a[1]);
+            const labels = sortedSegments.map(s => s[0]);
+            const values = sortedSegments.map(s => s[1]);
+
+            const colorPalette = {
+                'Mining': '#ec4899',
+                'Plantation': '#10b981',
+                'Forestry': '#f59e0b',
+                'Construction': '#8b5cf6',
+                'Others': '#06b6d4'
+            };
+
+            const bgColors = labels.map(l => colorPalette[l] || '#64748b');
+
+            if (chartSegment) chartSegment.destroy();
+            const ctx = document.getElementById('chart-segment').getContext('2d');
+            chartSegment = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: bgColors,
+                        borderWidth: 2,
+                        borderColor: '#1e293b'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '70%'
+                }
+            });
+
+            const legendContainer = document.getElementById('segment-legend');
+            legendContainer.innerHTML = labels.map((lbl, idx) => {
+                const count = values[idx];
+                const pct = ((count / totalUnits) * 100).toFixed(1);
+                return `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full" style="background-color: ${bgColors[idx]}"></span>
+                            <span class="text-slate-300 font-medium">${lbl}</span>
+                        </div>
+                        <span class="text-slate-400 font-mono">${count} unit (${pct}%)</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            document.getElementById('table-row-count').innerText = `${filteredData.length} Baris`;
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-500">Tidak ada data.</td></tr>`;
+                return;
+            }
+
+            const customerContractMap = {};
+            rawData.forEach(r => {
+                const c = getFieldValue(r, 'customer');
+                const k = getFieldValue(r, 'no_kontrak');
+                if (c && k) {
+                    if (!customerContractMap[c]) customerContractMap[c] = new Set();
+                    customerContractMap[c].add(k);
+                }
+            });
+
+            tbody.innerHTML = filteredData.map((row, index) => {
+                const noKontrak = getFieldValue(row, 'no_kontrak') || '-';
+                const cust = getFieldValue(row, 'customer') || '-';
+                const product = getFieldValue(row, 'product') || '-';
+                const bowheer = getFieldValue(row, 'bowheer') || '-';
+                const owner = getFieldValue(row, 'owner') || '-';
+                const lokasi = getFieldValue(row, 'lokasi') || '-';
+                const segment = getFieldValue(row, 'segment') || '-';
+
+                const totalKontrakCustomer = customerContractMap[cust] ? customerContractMap[cust].size : 1;
+
+                return `
+                <tr class="hover:bg-slate-700/40 transition">
+                    <td class="px-3 py-2.5 text-slate-400 font-mono text-[11px]">${index + 1}</td>
+                    <td class="px-3 py-2.5 font-mono text-[11px] text-cyan-400">${escapeHtml(noKontrak)}</td>
+                    <td class="px-3 py-2.5 font-medium text-slate-100">${escapeHtml(cust)}</td>
+                    <td class="px-3 py-2.5 text-center font-bold text-amber-400 font-mono text-[11px]">${totalKontrakCustomer} Kontrak</td>
+                    <td class="px-3 py-2.5 text-indigo-300 font-mono text-[11px]">${escapeHtml(product)}</td>
+                    <td class="px-3 py-2.5 text-slate-300">${escapeHtml(bowheer)}</td>
+                    <td class="px-3 py-2.5 text-amber-300">${escapeHtml(owner)}</td>
+                    <td class="px-3 py-2.5 text-cyan-300">${escapeHtml(lokasi)}</td>
+                    <td class="px-3 py-2.5">${escapeHtml(segment)}</td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+            });
+        }
+
+        function exportToCSV() {
+            if (!filteredData.length) return alert('Tidak ada data');
+            const csv = Papa.unparse(filteredData);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', `Export_Bowheer.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
