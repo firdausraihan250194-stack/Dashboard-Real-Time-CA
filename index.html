@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Monitoring CA-Real Time</title>
+    <title>Dashboard Monitoring CA-Real Time - Bowheer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -81,7 +81,7 @@
             </button>
         </section>
 
-        <!-- KPI SUMMARY CARDS -->
+        <!-- KPI SUMMARY CARDS (RINGKASAN UTAMA) -->
         <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden">
                 <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">TOTAL KONTRAK</p>
@@ -107,6 +107,48 @@
                 <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">AR > 30</p>
                 <h3 id="kpi-ar-30" class="text-2xl lg:text-3xl font-bold text-rose-400 mt-1">0%</h3>
                 <p id="kpi-ar-30-sub" class="text-[11px] text-slate-400 mt-1">0 dari 0 Kontrak</p>
+            </div>
+        </section>
+
+        <!-- KARTU RINCIAN STATUS KONTRAK (STATUS_AGREE) -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-slate-800/70 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-check"></i> KONTRAK ACTIVE
+                    </p>
+                    <h3 id="kpi-status-active" class="text-2xl font-bold text-white mt-1">0</h3>
+                    <p id="kpi-status-active-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                </div>
+                <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20">
+                    <i class="fa-solid fa-file-contract text-2xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-money-bill-check"></i> KONTRAK PAID OFF
+                    </p>
+                    <h3 id="kpi-status-paidoff" class="text-2xl font-bold text-white mt-1">0</h3>
+                    <p id="kpi-status-paidoff-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                </div>
+                <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400 border border-blue-500/20">
+                    <i class="fa-solid fa-receipt text-2xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-rose-500/30 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-xmark"></i> KONTRAK CANCEL
+                    </p>
+                    <h3 id="kpi-status-cancel" class="text-2xl font-bold text-white mt-1">0</h3>
+                    <p id="kpi-status-cancel-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                </div>
+                <div class="p-3 bg-rose-500/10 rounded-xl text-rose-400 border border-rose-500/20">
+                    <i class="fa-solid fa-ban text-2xl"></i>
+                </div>
             </div>
         </section>
 
@@ -178,7 +220,7 @@
                             <th class="px-3 py-3">NAMA CUSTOMER</th>
                             <th class="px-3 py-3 text-center">TOTAL KONTRAK</th>
                             <th class="px-3 py-3">PRODUCT</th>
-                            <th class="px-3 py-3">DIRECT BOWHEER</th>
+                            <th class="px-3 py-3">STATUS AGREE</th>
                             <th class="px-3 py-3">PROJECT OWNER</th>
                             <th class="px-3 py-3">LOKASI PROJECT</th>
                             <th class="px-3 py-3">SEGMENT</th>
@@ -240,6 +282,10 @@
             }
             if (fieldType === 'ar') {
                 const key = keys.find(k => /AR > 30|AR_30|AR30|^AR$/i.test(k));
+                return key ? String(row[key]).trim() : '';
+            }
+            if (fieldType === 'status_agree') {
+                const key = keys.find(k => /STATUS_AGREE|STATUS AGREE|STATUS_KONTRAK|STATUS/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
             return '';
@@ -335,11 +381,12 @@
                 const rowLokasi = getFieldValue(row, 'lokasi');
                 const rowSeg = getFieldValue(row, 'segment');
                 const rowKontrak = getFieldValue(row, 'no_kontrak');
+                const rowStatus = getFieldValue(row, 'status_agree');
 
                 const matchSeg = !segVal || rowSeg === segVal;
                 const matchCust = !custVal || rowCust === custVal;
                 const matchLok = !lokVal || rowLokasi === lokVal;
-                const searchHaystack = `${rowCust} ${rowOwner} ${rowProd} ${rowLokasi} ${rowSeg} ${rowKontrak}`.toLowerCase();
+                const searchHaystack = `${rowCust} ${rowOwner} ${rowProd} ${rowLokasi} ${rowSeg} ${rowKontrak} ${rowStatus}`.toLowerCase();
                 const matchSearch = !searchVal || searchHaystack.includes(searchVal);
 
                 return matchSeg && matchCust && matchLok && matchSearch;
@@ -369,22 +416,48 @@
             const uniqueOwners = new Set(filteredData.map(d => getFieldValue(d, 'owner')).filter(Boolean));
             document.getElementById('kpi-total-owner').innerText = uniqueOwners.size;
 
-            // LOGIKA AKURAT MEMBACA SEL BERNILAI 1, >0, YA, ATAU TRUE DARI KOLOM "AR > 30"
+            // 1. HITUNG AR > 30
             let arCount = 0;
+            // 2. HITUNG STATUS KONTRAK (STATUS_AGREE)
+            let activeCount = 0;
+            let paidOffCount = 0;
+            let cancelCount = 0;
+
             filteredData.forEach(row => {
+                // AR > 30 Check
                 const arVal = getFieldValue(row, 'ar');
                 const numVal = parseFloat(arVal.replace(/[^0-9.-]/g, ''));
-                
                 if (!isNaN(numVal) && numVal > 0) {
                     arCount++;
                 } else if (/ya|yes|>0|true|overdue/i.test(arVal)) {
                     arCount++;
                 }
+
+                // STATUS_AGREE Check
+                const st = getFieldValue(row, 'status_agree').toUpperCase();
+                if (st.includes('ACTIVE')) {
+                    activeCount++;
+                } else if (st.includes('PAID_OFF') || st.includes('PAID OFF') || st.includes('PAIDOFF')) {
+                    paidOffCount++;
+                } else if (st.includes('CANCEL')) {
+                    cancelCount++;
+                }
             });
 
+            // Update KPI AR > 30
             const arPercentage = totalKontrak > 0 ? ((arCount / totalKontrak) * 100).toFixed(1) : "0.0";
             document.getElementById('kpi-ar-30').innerText = `${arPercentage}%`;
             document.getElementById('kpi-ar-30-sub').innerText = `${arCount} dari ${totalKontrak} Kontrak`;
+
+            // Update KPI STATUS_AGREE
+            document.getElementById('kpi-status-active').innerText = activeCount;
+            document.getElementById('kpi-status-active-sub').innerText = `${totalKontrak > 0 ? ((activeCount/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
+
+            document.getElementById('kpi-status-paidoff').innerText = paidOffCount;
+            document.getElementById('kpi-status-paidoff-sub').innerText = `${totalKontrak > 0 ? ((paidOffCount/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
+
+            document.getElementById('kpi-status-cancel').innerText = cancelCount;
+            document.getElementById('kpi-status-cancel-sub').innerText = `${totalKontrak > 0 ? ((cancelCount/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
         }
 
         function countFrequency(dataArray, fieldType) {
@@ -631,12 +704,23 @@
                 const noKontrak = getFieldValue(row, 'no_kontrak') || '-';
                 const cust = getFieldValue(row, 'customer') || '-';
                 const product = getFieldValue(row, 'product') || '-';
-                const bowheer = getFieldValue(row, 'bowheer') || '-';
+                const statusAgree = getFieldValue(row, 'status_agree') || '-';
                 const owner = getFieldValue(row, 'owner') || '-';
                 const lokasi = getFieldValue(row, 'lokasi') || '-';
                 const segment = getFieldValue(row, 'segment') || '-';
 
                 const totalKontrakCustomer = customerContractMap[cust] ? customerContractMap[cust].size : 1;
+
+                // Badge warna berdasarkan status
+                let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300">${escapeHtml(statusAgree)}</span>`;
+                const stUpper = statusAgree.toUpperCase();
+                if (stUpper.includes('ACTIVE')) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">ACTIVE</span>`;
+                } else if (stUpper.includes('PAID_OFF') || stUpper.includes('PAID OFF') || stUpper.includes('PAIDOFF')) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">PAID OFF</span>`;
+                } else if (stUpper.includes('CANCEL')) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">CANCEL</span>`;
+                }
 
                 return `
                 <tr class="hover:bg-slate-700/40 transition">
@@ -645,7 +729,7 @@
                     <td class="px-3 py-2.5 font-medium text-slate-100">${escapeHtml(cust)}</td>
                     <td class="px-3 py-2.5 text-center font-bold text-amber-400 font-mono text-[11px]">${totalKontrakCustomer} Kontrak</td>
                     <td class="px-3 py-2.5 text-indigo-300 font-mono text-[11px]">${escapeHtml(product)}</td>
-                    <td class="px-3 py-2.5 text-slate-300">${escapeHtml(bowheer)}</td>
+                    <td class="px-3 py-2.5">${statusBadge}</td>
                     <td class="px-3 py-2.5 text-amber-300">${escapeHtml(owner)}</td>
                     <td class="px-3 py-2.5 text-cyan-300">${escapeHtml(lokasi)}</td>
                     <td class="px-3 py-2.5">${escapeHtml(segment)}</td>
