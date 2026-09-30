@@ -26,8 +26,8 @@
                     <i class="fa-solid fa-chart-line text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-white tracking-tight">Dashboard Monitoring CA-Real Time</h1>
-                    <p class="text-xs text-slate-400">Monitoring Realtime Unit, Project Owner, & Wilayah Indonesia</p>
+                    <h1 class="text-xl font-bold text-white tracking-tight">Dashboard Monitoring CA</h1>
+                    <p class="text-xs text-slate-400">Monitoring Realtime Unit, Project Owner, & Lokasi Indonesia</p>
                 </div>
             </div>
 
@@ -83,35 +83,53 @@
 
         <!-- KPI SUMMARY CARDS (RINGKASAN UTAMA) -->
         <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden">
-                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">TOTAL KONTRAK</p>
-                <h3 id="kpi-total-unit" class="text-2xl lg:text-3xl font-bold text-white mt-1">0</h3>
-                <p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">TOTAL KONTRAK</p>
+                    <h3 id="kpi-total-unit" class="text-2xl lg:text-3xl font-bold text-white mt-1">0</h3>
+                </div>
+                <p class="text-[11px] text-emerald-400 mt-2 flex items-center gap-1">
                     <i class="fa-solid fa-check-circle"></i> Transaksi/Unit aktif
                 </p>
             </div>
 
-            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden">
-                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Customer</p>
-                <h3 id="kpi-total-customer" class="text-2xl lg:text-3xl font-bold text-indigo-400 mt-1">0</h3>
-                <p class="text-[11px] text-slate-400 mt-1">Entitas customer unik</p>
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Customer</p>
+                    <h3 id="kpi-total-customer" class="text-2xl lg:text-3xl font-bold text-indigo-400 mt-1">0</h3>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">Entitas customer unik</p>
             </div>
 
-            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden">
-                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Project Owner</p>
-                <h3 id="kpi-total-owner" class="text-2xl lg:text-3xl font-bold text-amber-400 mt-1">0</h3>
-                <p class="text-[11px] text-slate-400 mt-1">Perusahaan pemilik project</p>
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Project Owner</p>
+                    <h3 id="kpi-total-owner" class="text-2xl lg:text-3xl font-bold text-amber-400 mt-1">0</h3>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">Perusahaan pemilik project</p>
             </div>
 
-            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden">
-                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">AR > 30</p>
-                <h3 id="kpi-ar-30" class="text-2xl lg:text-3xl font-bold text-rose-400 mt-1">0%</h3>
-                <p id="kpi-ar-30-sub" class="text-[11px] text-slate-400 mt-1">0 dari 0 Kontrak</p>
+            <!-- UPGRADE 1 & 2: SUB-JUDUL AR > 30 < 60 & BREAKDOWN TOP 3 CUSTOMER -->
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">AR &gt; 30 &lt; 60</p>
+                    <div class="flex items-baseline gap-2 mt-0.5">
+                        <h3 id="kpi-ar-30" class="text-2xl lg:text-3xl font-bold text-rose-400">0%</h3>
+                        <span id="kpi-ar-30-sub" class="text-[11px] text-slate-400">0 Kontrak</span>
+                    </div>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-700/60">
+                    <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider mb-1">Top 3 Customer AR:</p>
+                    <div id="kpi-ar-top3" class="space-y-0.5 text-[10px] text-slate-300">
+                        <span class="text-slate-500 italic">Belum ada data</span>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- KARTU RINCIAN STATUS KONTRAK (STATUS_AGREE) -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- UPGRADE 3: TAMPILAN TOTAL OUTSTANDING PADA KONTRAK ACTIVE -->
             <div class="bg-slate-800/70 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -119,34 +137,42 @@
                     </p>
                     <h3 id="kpi-status-active" class="text-2xl font-bold text-white mt-1">0</h3>
                     <p id="kpi-status-active-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                    <div class="mt-2 pt-1.5 border-t border-emerald-500/20">
+                        <p class="text-[10px] text-slate-400 uppercase font-medium">Total Outstanding:</p>
+                        <p id="kpi-active-outstanding" class="text-xs font-bold text-emerald-300 font-mono mt-0.5">Rp 0</p>
+                    </div>
                 </div>
-                <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20">
+                <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20 self-start">
                     <i class="fa-solid fa-file-contract text-2xl"></i>
                 </div>
             </div>
 
             <div class="bg-slate-800/70 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-money-bill-check"></i> KONTRAK PAID OFF
-                    </p>
-                    <h3 id="kpi-status-paidoff" class="text-2xl font-bold text-white mt-1">0</h3>
-                    <p id="kpi-status-paidoff-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                <div class="flex flex-col h-full justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-money-bill-check"></i> KONTRAK PAID OFF
+                        </p>
+                        <h3 id="kpi-status-paidoff" class="text-2xl font-bold text-white mt-1">0</h3>
+                        <p id="kpi-status-paidoff-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                    </div>
                 </div>
-                <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400 border border-blue-500/20">
+                <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400 border border-blue-500/20 self-start">
                     <i class="fa-solid fa-receipt text-2xl"></i>
                 </div>
             </div>
 
             <div class="bg-slate-800/70 border border-rose-500/30 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-xmark"></i> KONTRAK CANCEL
-                    </p>
-                    <h3 id="kpi-status-cancel" class="text-2xl font-bold text-white mt-1">0</h3>
-                    <p id="kpi-status-cancel-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                <div class="flex flex-col h-full justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-xmark"></i> KONTRAK CANCEL
+                        </p>
+                        <h3 id="kpi-status-cancel" class="text-2xl font-bold text-white mt-1">0</h3>
+                        <p id="kpi-status-cancel-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                    </div>
                 </div>
-                <div class="p-3 bg-rose-500/10 rounded-xl text-rose-400 border border-rose-500/20">
+                <div class="p-3 bg-rose-500/10 rounded-xl text-rose-400 border border-rose-500/20 self-start">
                     <i class="fa-solid fa-ban text-2xl"></i>
                 </div>
             </div>
@@ -173,11 +199,12 @@
             </div>
         </section>
 
-        <!-- SEBARAN WILAYAH & SEGMENT INDUSTRY SECTION -->
+        <!-- SEBARAN LOKASI/KOTA & SEGMENT INDUSTRY SECTION -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- UPGRADE 4: SEBARAN LOKASI / KOTA (TOP 10) -->
             <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 flex flex-col">
                 <h2 class="text-base font-semibold text-white flex items-center gap-2 mb-4">
-                    <i class="fa-solid fa-map-location-dot text-cyan-400"></i> Sebaran Wilayah Indonesia (Top 10)
+                    <i class="fa-solid fa-map-location-dot text-cyan-400"></i> Sebaran Lokasi / Kota (Top 10)
                 </h2>
                 <div class="relative flex-grow min-h-[280px]">
                     <canvas id="chart-sebaran-wilayah"></canvas>
@@ -287,6 +314,10 @@
             if (fieldType === 'status_agree') {
                 const key = keys.find(k => /STATUS_AGREE|STATUS AGREE|STATUS_KONTRAK|STATUS/i.test(k));
                 return key ? String(row[key]).trim() : '';
+            }
+            if (fieldType === 'outstanding') {
+                const key = keys.find(k => /OUTSTANDING|OS|SISA_PLAFOND|PLAFOND|SISA/i.test(k));
+                return key ? String(row[key]).trim() : '0';
             }
             return '';
         }
@@ -416,27 +447,39 @@
             const uniqueOwners = new Set(filteredData.map(d => getFieldValue(d, 'owner')).filter(Boolean));
             document.getElementById('kpi-total-owner').innerText = uniqueOwners.size;
 
-            // 1. HITUNG AR > 30
             let arCount = 0;
-            // 2. HITUNG STATUS KONTRAK (STATUS_AGREE)
+            const arCustomerMap = {}; // Untuk Top 3 Customer AR > 30 < 60
+
             let activeCount = 0;
+            let activeOutstandingSum = 0; // Total Outstanding Active Contracts
             let paidOffCount = 0;
             let cancelCount = 0;
 
             filteredData.forEach(row => {
-                // AR > 30 Check
+                // Check AR > 30 < 60
                 const arVal = getFieldValue(row, 'ar');
                 const numVal = parseFloat(arVal.replace(/[^0-9.-]/g, ''));
+                let isAR = false;
                 if (!isNaN(numVal) && numVal > 0) {
-                    arCount++;
+                    isAR = true;
                 } else if (/ya|yes|>0|true|overdue/i.test(arVal)) {
-                    arCount++;
+                    isAR = true;
                 }
 
-                // STATUS_AGREE Check
+                if (isAR) {
+                    arCount++;
+                    const custName = getFieldValue(row, 'customer') || 'Unknown';
+                    arCustomerMap[custName] = (arCustomerMap[custName] || 0) + 1;
+                }
+
+                // Check STATUS_AGREE & Outstanding
                 const st = getFieldValue(row, 'status_agree').toUpperCase();
+                const rawOs = getFieldValue(row, 'outstanding');
+                const osNum = parseFloat(rawOs.replace(/[^0-9.-]/g, '')) || 0;
+
                 if (st.includes('ACTIVE')) {
                     activeCount++;
+                    activeOutstandingSum += osNum;
                 } else if (st.includes('PAID_OFF') || st.includes('PAID OFF') || st.includes('PAIDOFF')) {
                     paidOffCount++;
                 } else if (st.includes('CANCEL')) {
@@ -444,14 +487,32 @@
                 }
             });
 
-            // Update KPI AR > 30
+            // Update KPI AR > 30 < 60
             const arPercentage = totalKontrak > 0 ? ((arCount / totalKontrak) * 100).toFixed(1) : "0.0";
             document.getElementById('kpi-ar-30').innerText = `${arPercentage}%`;
             document.getElementById('kpi-ar-30-sub').innerText = `${arCount} dari ${totalKontrak} Kontrak`;
 
-            // Update KPI STATUS_AGREE
+            // Render Top 3 Customer AR
+            const sortedArCust = Object.entries(arCustomerMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            const top3Container = document.getElementById('kpi-ar-top3');
+            if (sortedArCust.length > 0) {
+                top3Container.innerHTML = sortedArCust.map(([cName, cnt], idx) => `
+                    <div class="flex items-center justify-between">
+                        <span class="truncate max-w-[130px]" title="${escapeHtml(cName)}">${idx + 1}. ${escapeHtml(cName)}</span>
+                        <span class="font-bold text-rose-300 font-mono">${cnt} Kr</span>
+                    </div>
+                `).join('');
+            } else {
+                top3Container.innerHTML = `<span class="text-slate-500 italic">Tidak ada kasus AR</span>`;
+            }
+
+            // Update KPI Status Contract
             document.getElementById('kpi-status-active').innerText = activeCount;
             document.getElementById('kpi-status-active-sub').innerText = `${totalKontrak > 0 ? ((activeCount/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
+            
+            // Format Rupiah Total Outstanding
+            const formattedRupiah = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(activeOutstandingSum);
+            document.getElementById('kpi-active-outstanding').innerText = formattedRupiah;
 
             document.getElementById('kpi-status-paidoff').innerText = paidOffCount;
             document.getElementById('kpi-status-paidoff-sub').innerText = `${totalKontrak > 0 ? ((paidOffCount/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
@@ -545,40 +606,17 @@
             });
         }
 
+        // UPGRADE 4: SEBARAN LOKASI / KOTA (TOP 10)
         function renderWilayahChart() {
-            const customerCounts = countFrequency(filteredData, 'customer');
-            const top10Customers = new Set(Object.entries(customerCounts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(i => i[0]));
+            const counts = countFrequency(filteredData, 'lokasi');
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const totalFiltered = filteredData.length;
 
-            const ownerCounts = countFrequency(filteredData, 'owner');
-            const top10Owners = new Set(Object.entries(ownerCounts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(i => i[0]));
-
-            const topData = filteredData.filter(row => {
-                const cust = getFieldValue(row, 'customer');
-                const owner = getFieldValue(row, 'owner');
-                return top10Customers.has(cust) || top10Owners.has(owner);
-            });
-
-            const regionCounts = { "Jawa": 0, "Kalimantan": 0, "Sulawesi": 0, "Sumatera": 0, "Nusa Tenggara": 0, "Maluku & Papua": 0 };
-
-            topData.forEach(item => {
-                const loc = getFieldValue(item, 'lokasi').toLowerCase();
-                if (loc.includes('jawa') || loc.includes('jakarta') || loc.includes('surabaya') || loc.includes('bandung') || loc.includes('semarang') || loc.includes('banten')) regionCounts["Jawa"]++;
-                else if (loc.includes('kalimantan') || loc.includes('kutai') || loc.includes('samarinda') || loc.includes('balikpapan') || loc.includes('banjarmasin')) regionCounts["Kalimantan"]++;
-                else if (loc.includes('sulawesi') || loc.includes('konawe') || loc.includes('pomala') || loc.includes('makassar') || loc.includes('manado')) regionCounts["Sulawesi"]++;
-                else if (loc.includes('sumatera') || loc.includes('palembang') || loc.includes('bengkulu') || loc.includes('serang') || loc.includes('medan') || loc.includes('jambi') || loc.includes('riau')) regionCounts["Sumatera"]++;
-                else if (loc.includes('nusa') || loc.includes('bali') || loc.includes('lombok') || loc.includes('ntt') || loc.includes('ntb')) regionCounts["Nusa Tenggara"]++;
-                else if (loc.includes('papua') || loc.includes('maluku') || loc.includes('ambon') || loc.includes('jayapura')) regionCounts["Maluku & Papua"]++;
-                else regionCounts["Jawa"]++;
-            });
-
-            const totalTop = Object.values(regionCounts).reduce((a, b) => a + b, 0);
-            const sortedRegions = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]);
-
-            const labels = sortedRegions.map(r => {
-                const pct = totalTop > 0 ? ((r[1] / totalTop) * 100).toFixed(1) : 0;
+            const labels = sorted.map(r => {
+                const pct = totalFiltered > 0 ? ((r[1] / totalFiltered) * 100).toFixed(1) : 0;
                 return `${r[0]} (${pct}%)`;
             });
-            const values = sortedRegions.map(r => r[1]);
+            const values = sorted.map(r => r[1]);
 
             if (chartWilayah) chartWilayah.destroy();
             const ctx = document.getElementById('chart-sebaran-wilayah').getContext('2d');
@@ -602,7 +640,7 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { grid: { color: 'rgba(51, 65, 85, 0.5)' }, ticks: { color: '#94a3b8' } },
-                        y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 11, weight: 'bold' } } }
+                        y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 10, weight: 'bold' } } }
                     }
                 }
             });
@@ -711,7 +749,6 @@
 
                 const totalKontrakCustomer = customerContractMap[cust] ? customerContractMap[cust].size : 1;
 
-                // Badge warna berdasarkan status
                 let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300">${escapeHtml(statusAgree)}</span>`;
                 const stUpper = statusAgree.toUpperCase();
                 if (stUpper.includes('ACTIVE')) {
