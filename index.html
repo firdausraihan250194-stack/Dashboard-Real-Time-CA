@@ -256,7 +256,8 @@
                             <th class="px-3 py-3">NO KONTRAK</th>
                             <th class="px-3 py-3">NAMA CUSTOMER</th>
                             <th class="px-3 py-3 text-center">TOTAL KONTRAK</th>
-                            <th class="px-3 py-3">PRODUCT / BRAND</th>
+                            <th class="px-3 py-3">BRAND</th>
+                            <th class="px-3 py-3">PRODUCT / BTM</th>
                             <th class="px-3 py-3">STATUS AGREE</th>
                             <th class="px-3 py-3">PROJECT OWNER</th>
                             <th class="px-3 py-3">LOKASI PROJECT</th>
@@ -285,21 +286,26 @@
             fetchGoogleSheetData();
         });
 
-        // Helper Konversi String Angka/Mata Uang Indonesia ke Float
+        // PARSER ANGKA AKURAT UNTUK FORMAT KOMA/TITIK RIBUAN DAN RUPIAH INDONESIA
         function parseCurrencyNumber(valStr) {
-            if (!valStr) return 0;
-            let cleaned = String(valStr).replace(/Rp|RP|\s/g, '').trim();
-            if (cleaned.includes('.') && cleaned.includes(',')) {
-                cleaned = cleaned.replace(/\./g, '').replace(',', '.');
-            } else if (cleaned.includes('.')) {
-                const parts = cleaned.split('.');
-                if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
-                    cleaned = cleaned.replace(/\./g, '');
+            if (!valStr || valStr === '-' || valStr === 'null' || valStr === 'undefined') return 0;
+            let str = String(valStr).replace(/Rp|RP|\s/g, '').trim();
+            if (!str) return 0;
+            
+            // Hapus pemisah ribuan koma (seperti 1,041,250,000) atau titik (1.041.250.000)
+            // Jika ada koma dan titik sekaligus (misal 1.041.250.000,00)
+            if (str.includes('.') && str.includes(',')) {
+                if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                } else {
+                    str = str.replace(/,/g, '');
                 }
-            } else if (cleaned.includes(',')) {
-                cleaned = cleaned.replace(',', '.');
+            } else {
+                // Hanya mengandung koma saja sebagai pemisah ribuan
+                str = str.replace(/,/g, '');
             }
-            const num = parseFloat(cleaned);
+            
+            const num = parseFloat(str);
             return isNaN(num) ? 0 : num;
         }
 
@@ -308,7 +314,7 @@
             const keys = Object.keys(row);
 
             if (fieldType === 'no_kontrak') {
-                const key = keys.find(k => /NO_KONTRAK|NO KONTRAK|KONTRAK/i.test(k));
+                const key = keys.find(k => /NO_KONTRAK|NO KONTRAK|^KONTRAK$/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'customer') {
@@ -316,15 +322,12 @@
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'brand_unit') {
-                // Memprioritaskan BRAND / MERK / DESKRIPSI UNIT
-                const key = keys.find(k => /BRAND_UNIT|BRAND UNIT|^BRAND$\vert{}^MERK$|MERK_UNIT|DESKRIPSI_UNIT|DESKRIPSI BARANG/i.test(k));
-                if (key) return String(row[key]).trim();
-
-                const fallbackKey = keys.find(k => /PRODUCT|PRODUK|BARANG/i.test(k));
-                return fallbackKey ? String(row[fallbackKey]).trim() : '';
+                // Membaca persis kolom BRAND (Kolom V di Sheet)
+                const key = keys.find(k => /^BRAND$/i.test(k) || /BRAND_UNIT|BRAND UNIT|^MERK$/i.test(k));
+                return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'product') {
-                const key = keys.find(k => /BRAND|MERK|PRODUCT|PRODUK|BARANG/i.test(k));
+                const key = keys.find(k => /^BTM$|PRODUCT|PRODUK|BARANG/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'owner') {
@@ -340,7 +343,7 @@
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'ar') {
-                const key = keys.find(k => /AR > 30|AR_30|AR30|^AR$/i.test(k));
+                const key = keys.find(k => /^AR$|AR > 30|AR_30|AR30/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'status_agree') {
@@ -348,12 +351,13 @@
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'outstanding') {
-                const key = keys.find(k => /OUTSTANDING|OS|SISA_PLAFOND|PLAFOND|SISA/i.test(k));
+                // Membaca AF Outstanding (Kolom U di Sheet)
+                const key = keys.find(k => /AF Outstanding|AF_OUTSTANDING|OUTSTANDING|OS/i.test(k));
                 return key ? String(row[key]).trim() : '0';
             }
             if (fieldType === 'af_kontrak') {
-                // Penyesuaian regex fleksibel pencarian kolom AF
-                const key = keys.find(k => /AF_KONTRAK|AF KONTRAK|TOTAL_AF|TOTAL AF|AMOUNT_FINANCE|AMOUNT FINANCE|NILAI_AF|NILAI AF|^AF$/i.test(k));
+                // Membaca AF Kontrak (Kolom T di Sheet)
+                const key = keys.find(k => /^AF Kontrak$|AF_KONTRAK|AF KONTRAK|^AF$/i.test(k));
                 return key ? String(row[key]).trim() : '0';
             }
             return '';
@@ -450,11 +454,12 @@
                 const rowSeg = getFieldValue(row, 'segment');
                 const rowKontrak = getFieldValue(row, 'no_kontrak');
                 const rowStatus = getFieldValue(row, 'status_agree');
+                const rowBrand = getFieldValue(row, 'brand_unit');
 
                 const matchSeg = !segVal || rowSeg === segVal;
                 const matchCust = !custVal || rowCust === custVal;
                 const matchLok = !lokVal || rowLokasi === lokVal;
-                const searchHaystack = `${rowCust} ${rowOwner} ${rowProd} ${rowLokasi} ${rowSeg} ${rowKontrak} ${rowStatus}`.toLowerCase();
+                const searchHaystack = `${rowCust} ${rowOwner} ${rowProd} ${rowBrand} ${rowLokasi} ${rowSeg} ${rowKontrak} ${rowStatus}`.toLowerCase();
                 const matchSearch = !searchVal || searchHaystack.includes(searchVal);
 
                 return matchSeg && matchCust && matchLok && matchSearch;
@@ -508,9 +513,9 @@
                     activeCount++;
                     activeOutstandingSum += osNum;
 
-                    // Cek status AR
+                    // Evaluasi AR > 30 < 60
                     const arVal = getFieldValue(row, 'ar');
-                    const numVal = parseFloat(arVal.replace(/[^0-9.-]/g, ''));
+                    const numVal = parseFloat(String(arVal).replace(/[^0-9.-]/g, ''));
                     let isAR = false;
                     if (!isNaN(numVal) && numVal > 0) {
                         isAR = true;
@@ -523,11 +528,9 @@
                         const custName = getFieldValue(row, 'customer') || 'Unknown';
                         arActiveCustomerMap[custName] = (arActiveCustomerMap[custName] || 0) + 1;
 
-                        // Ambil data brand unit & abaikan fasilitas non-unit (ABF, FACTORING, FMU)
-                        let brandName = getFieldValue(row, 'brand_unit');
-                        
-                        // Filter menyaring fasilitas non-brand
-                        if (brandName && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(brandName)) {
+                        // Ambil Nilai Kolom Brand
+                        const brandName = getFieldValue(row, 'brand_unit');
+                        if (brandName && brandName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(brandName)) {
                             arActiveBrandMap[brandName] = (arActiveBrandMap[brandName] || 0) + 1;
                         }
                     }
@@ -544,7 +547,7 @@
             document.getElementById('kpi-ar-30').innerText = `${arActivePercentage}%`;
             document.getElementById('kpi-ar-30-sub').innerText = `${arActiveCount} dari ${activeCount} Active`;
 
-            // Render Top 3 Customer AR
+            // Top 3 Customer AR
             const sortedArActiveCust = Object.entries(arActiveCustomerMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
             const top3Container = document.getElementById('kpi-ar-top3');
             if (sortedArActiveCust.length > 0) {
@@ -558,7 +561,7 @@
                 top3Container.innerHTML = `<span class="text-slate-500 italic">Tidak ada data</span>`;
             }
 
-            // Render Top 3 Brand Unit AR (Eksklusif Non-ABF/Factoring/FMU)
+            // Top 3 Brand Unit AR
             const sortedArActiveBrand = Object.entries(arActiveBrandMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
             const top3BrandContainer = document.getElementById('kpi-ar-top3-brand');
             if (sortedArActiveBrand.length > 0) {
@@ -826,7 +829,7 @@
             document.getElementById('table-row-count').innerText = `${filteredData.length} Baris`;
 
             if (filteredData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-500">Tidak ada data.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-500">Tidak ada data.</td></tr>`;
                 return;
             }
 
@@ -843,6 +846,7 @@
             tbody.innerHTML = filteredData.map((row, index) => {
                 const noKontrak = getFieldValue(row, 'no_kontrak') || '-';
                 const cust = getFieldValue(row, 'customer') || '-';
+                const brand = getFieldValue(row, 'brand_unit') || '-';
                 const product = getFieldValue(row, 'product') || '-';
                 const statusAgree = getFieldValue(row, 'status_agree') || '-';
                 const owner = getFieldValue(row, 'owner') || '-';
@@ -867,6 +871,7 @@
                     <td class="px-3 py-2.5 font-mono text-[11px] text-cyan-400">${escapeHtml(noKontrak)}</td>
                     <td class="px-3 py-2.5 font-medium text-slate-100">${escapeHtml(cust)}</td>
                     <td class="px-3 py-2.5 text-center font-bold text-amber-400 font-mono text-[11px]">${totalKontrakCustomer} Kontrak</td>
+                    <td class="px-3 py-2.5 font-bold text-amber-300 font-mono text-[11px]">${escapeHtml(brand)}</td>
                     <td class="px-3 py-2.5 text-indigo-300 font-mono text-[11px]">${escapeHtml(product)}</td>
                     <td class="px-3 py-2.5">${statusBadge}</td>
                     <td class="px-3 py-2.5 text-amber-300">${escapeHtml(owner)}</td>
