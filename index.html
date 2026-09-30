@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Monitoring CA-Real Time - Bowheer</title>
+    <title>Dashboard Monitoring CA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -26,7 +26,7 @@
                     <i class="fa-solid fa-chart-line text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-white tracking-tight">Dashboard Monitoring CA-Real Time</h1>
+                    <h1 class="text-xl font-bold text-white tracking-tight">Dashboard Monitoring CA</h1>
                     <p class="text-xs text-slate-400">Monitoring Realtime Unit, Project Owner, & Lokasi Indonesia</p>
                 </div>
             </div>
@@ -83,14 +83,19 @@
 
         <!-- KPI SUMMARY CARDS -->
         <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            
+            <!-- TOTAL KONTRAK + BREAKDOWN PER TAHUN -->
             <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">TOTAL KONTRAK</p>
                     <h3 id="kpi-total-unit" class="text-2xl lg:text-3xl font-bold text-white mt-1">0</h3>
                 </div>
-                <p class="text-[11px] text-emerald-400 mt-2 flex items-center gap-1">
-                    <i class="fa-solid fa-check-circle"></i> Transaksi/Unit aktif
-                </p>
+                <div class="mt-2 pt-2 border-t border-slate-700/60">
+                    <p class="text-[9px] text-emerald-400 uppercase font-semibold tracking-wider mb-1">Breakdown AF per Tahun:</p>
+                    <div id="kpi-year-breakdown" class="space-y-1 text-[10px]">
+                        <span class="text-slate-500 italic">Memuat data...</span>
+                    </div>
+                </div>
             </div>
 
             <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
@@ -109,7 +114,7 @@
                 <p class="text-[11px] text-slate-400 mt-2">Perusahaan pemilik project</p>
             </div>
 
-            <!-- KARTU AR > 30 < 60 (ACTIVE) -->
+            <!-- AR > 30 < 60 (ACTIVE) -->
             <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">AR &gt; 30 &lt; 60 (ACTIVE)</p>
@@ -286,14 +291,12 @@
             fetchGoogleSheetData();
         });
 
-        // PARSER ANGKA AKURAT UNTUK FORMAT KOMA/TITIK RIBUAN DAN RUPIAH INDONESIA
+        // Helper Pembaca Format Rupiah/Koma
         function parseCurrencyNumber(valStr) {
             if (!valStr || valStr === '-' || valStr === 'null' || valStr === 'undefined') return 0;
             let str = String(valStr).replace(/Rp|RP|\s/g, '').trim();
             if (!str) return 0;
             
-            // Hapus pemisah ribuan koma (seperti 1,041,250,000) atau titik (1.041.250.000)
-            // Jika ada koma dan titik sekaligus (misal 1.041.250.000,00)
             if (str.includes('.') && str.includes(',')) {
                 if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
                     str = str.replace(/\./g, '').replace(',', '.');
@@ -301,12 +304,44 @@
                     str = str.replace(/,/g, '');
                 }
             } else {
-                // Hanya mengandung koma saja sebagai pemisah ribuan
                 str = str.replace(/,/g, '');
             }
             
             const num = parseFloat(str);
             return isNaN(num) ? 0 : num;
+        }
+
+        // Helper Ekstrak Tahun dari Kolom Contract Date (Contoh: "12/13/24", "2024-12-13", "12/13/2024")
+        function extractYearFromDate(dateStr) {
+            if (!dateStr) return 'Lainnya';
+            const str = String(dateStr).trim();
+            const yearMatch = str.match(/\b(20\d{2}|19\d{2})\b/);
+            if (yearMatch) return yearMatch[1];
+            
+            const slashParts = str.split('/');
+            if (slashParts.length === 3) {
+                let yr = slashParts[2].split(' ')[0].trim();
+                if (yr.length === 2) return '20' + yr;
+                if (yr.length === 4) return yr;
+            }
+            return 'Lainnya';
+        }
+
+        // Normalisasi Teks untuk Menggabungkan PT Wirakarya Sakti yang Beda Format Kapital/Spasi
+        function normalizeEntityName(rawName) {
+            if (!rawName) return '';
+            let cleaned = String(rawName).trim().replace(/\s+/g, ' ');
+            return cleaned.toUpperCase();
+        }
+
+        // Standardisasi Format Tampilan Nama (Title Case / Capitalized)
+        function formatEntityDisplay(rawName) {
+            if (!rawName) return '';
+            let cleaned = String(rawName).trim().replace(/\s+/g, ' ');
+            if (cleaned.toUpperCase().includes('WIRAKARYA SAKTI')) {
+                return 'PT Wirakarya Sakti';
+            }
+            return cleaned;
         }
 
         function getFieldValue(row, fieldType) {
@@ -322,7 +357,6 @@
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'brand_unit') {
-                // Membaca persis kolom BRAND (Kolom V di Sheet)
                 const key = keys.find(k => /^BRAND$/i.test(k) || /BRAND_UNIT|BRAND UNIT|^MERK$/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
@@ -351,14 +385,16 @@
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'outstanding') {
-                // Membaca AF Outstanding (Kolom U di Sheet)
                 const key = keys.find(k => /AF Outstanding|AF_OUTSTANDING|OUTSTANDING|OS/i.test(k));
                 return key ? String(row[key]).trim() : '0';
             }
             if (fieldType === 'af_kontrak') {
-                // Membaca AF Kontrak (Kolom T di Sheet)
                 const key = keys.find(k => /^AF Kontrak$|AF_KONTRAK|AF KONTRAK|^AF$/i.test(k));
                 return key ? String(row[key]).trim() : '0';
+            }
+            if (fieldType === 'contract_date') {
+                const key = keys.find(k => /Contract Date|CONTRACT_DATE|CONTRACTDATE|TANGGAL_KONTRAK/i.test(k));
+                return key ? String(row[key]).trim() : '';
             }
             return '';
         }
@@ -483,11 +519,12 @@
             const totalKontrak = filteredData.length;
             document.getElementById('kpi-total-unit').innerText = totalKontrak;
 
-            const uniqueCustomers = new Set(filteredData.map(d => getFieldValue(d, 'customer')).filter(Boolean));
-            document.getElementById('kpi-total-customer').innerText = uniqueCustomers.size;
-
-            const uniqueOwners = new Set(filteredData.map(d => getFieldValue(d, 'owner')).filter(Boolean));
-            document.getElementById('kpi-total-owner').innerText = uniqueOwners.size;
+            // PENGHITUNGAN BREAKDOWN KONTRAK & AF KONTRAK PER TAHUN
+            const yearMap = {};
+            
+            // PENGHITUNGAN KPI UTAMA
+            const uniqueCustomers = new Set();
+            const uniqueOwners = new Set();
 
             let activeCount = 0;
             let activeOutstandingSum = 0;
@@ -500,20 +537,35 @@
             const arActiveBrandMap = {};
 
             filteredData.forEach(row => {
+                const cName = getFieldValue(row, 'customer');
+                if (cName) uniqueCustomers.add(normalizeEntityName(cName));
+
+                const oName = getFieldValue(row, 'owner');
+                if (oName) uniqueOwners.add(normalizeEntityName(oName));
+
+                // Hitung per tahun
+                const cDate = getFieldValue(row, 'contract_date');
+                const yr = extractYearFromDate(cDate);
+                const rawAfRow = getFieldValue(row, 'af_kontrak');
+                const afNumRow = parseCurrencyNumber(rawAfRow);
+
+                if (!yearMap[yr]) {
+                    yearMap[yr] = { count: 0, totalAf: 0 };
+                }
+                yearMap[yr].count++;
+                yearMap[yr].totalAf += afNumRow;
+
+                // Hitung per status agreement
                 const st = getFieldValue(row, 'status_agree').toUpperCase();
                 const isActive = st.includes('ACTIVE');
 
                 const rawOs = getFieldValue(row, 'outstanding');
                 const osNum = parseCurrencyNumber(rawOs);
 
-                const rawAf = getFieldValue(row, 'af_kontrak');
-                const afNum = parseCurrencyNumber(rawAf);
-
                 if (isActive) {
                     activeCount++;
                     activeOutstandingSum += osNum;
 
-                    // Evaluasi AR > 30 < 60
                     const arVal = getFieldValue(row, 'ar');
                     const numVal = parseFloat(String(arVal).replace(/[^0-9.-]/g, ''));
                     let isAR = false;
@@ -525,10 +577,9 @@
 
                     if (isAR) {
                         arActiveCount++;
-                        const custName = getFieldValue(row, 'customer') || 'Unknown';
-                        arActiveCustomerMap[custName] = (arActiveCustomerMap[custName] || 0) + 1;
+                        const custDisp = formatEntityDisplay(cName || 'Unknown');
+                        arActiveCustomerMap[custDisp] = (arActiveCustomerMap[custDisp] || 0) + 1;
 
-                        // Ambil Nilai Kolom Brand
                         const brandName = getFieldValue(row, 'brand_unit');
                         if (brandName && brandName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(brandName)) {
                             arActiveBrandMap[brandName] = (arActiveBrandMap[brandName] || 0) + 1;
@@ -536,11 +587,31 @@
                     }
                 } else if (st.includes('PAID_OFF') || st.includes('PAID OFF') || st.includes('PAIDOFF')) {
                     paidOffCount++;
-                    paidOffAfSum += afNum;
+                    paidOffAfSum += afNumRow;
                 } else if (st.includes('CANCEL')) {
                     cancelCount++;
                 }
             });
+
+            document.getElementById('kpi-total-customer').innerText = uniqueCustomers.size;
+            document.getElementById('kpi-total-owner').innerText = uniqueOwners.size;
+
+            // RENDER BREAKDOWN KONTRAK PER TAHUN
+            const sortedYears = Object.keys(yearMap).sort();
+            const yearBreakdownContainer = document.getElementById('kpi-year-breakdown');
+            if (sortedYears.length > 0) {
+                yearBreakdownContainer.innerHTML = sortedYears.map(y => {
+                    const fmtAf = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(yearMap[y].totalAf);
+                    return `
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300 font-medium">${y}: <span class="text-emerald-400 font-bold">${yearMap[y].count} Kr</span></span>
+                            <span class="text-slate-400 font-mono text-[9px]">${fmtAf}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                yearBreakdownContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada data tanggal</span>`;
+            }
 
             // Update KPI AR > 30 < 60
             const arActivePercentage = activeCount > 0 ? ((arActiveCount / activeCount) * 100).toFixed(1) : "0.0";
@@ -594,13 +665,30 @@
             document.getElementById('kpi-status-cancel-sub').innerText = `${totalKontrak > 0 ? ((cancelCount/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
         }
 
-        function countFrequency(dataArray, fieldType) {
+        function countFrequencyNormalized(dataArray, fieldType) {
             const counts = {};
+            const displayMap = {};
+
             dataArray.forEach(item => {
-                const val = getFieldValue(item, fieldType);
-                if (val) counts[val] = (counts[val] || 0) + 1;
+                const rawVal = getFieldValue(item, fieldType);
+                if (rawVal) {
+                    const normalizedKey = normalizeEntityName(rawVal);
+                    counts[normalizedKey] = (counts[normalizedKey] || 0) + 1;
+                    if (!displayMap[normalizedKey]) {
+                        displayMap[normalizedKey] = formatEntityDisplay(rawVal);
+                    }
+                }
             });
-            return counts;
+
+            const result = [];
+            Object.keys(counts).forEach(key => {
+                result.push({
+                    name: displayMap[key],
+                    count: counts[key]
+                });
+            });
+
+            return result;
         }
 
         function renderCharts() {
@@ -611,11 +699,11 @@
 
         function renderTopCustomerChart() {
             const activeData = filteredData.filter(row => getFieldValue(row, 'status_agree').toUpperCase().includes('ACTIVE'));
-            const counts = countFrequency(activeData, 'customer');
-            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const freqList = countFrequencyNormalized(activeData, 'customer');
+            const sorted = freqList.sort((a, b) => b.count - a.count).slice(0, 10);
             
-            const labels = sorted.map(item => item[0]);
-            const values = sorted.map(item => item[1]);
+            const labels = sorted.map(item => item.name);
+            const values = sorted.map(item => item.count);
 
             if (chartCustomer) chartCustomer.destroy();
             const ctx = document.getElementById('chart-top-customer').getContext('2d');
@@ -645,13 +733,14 @@
             });
         }
 
+        // PERBAIKAN GRAFIK PROJECT OWNER (MENGGABUNGKAN NAMA PROJECT OWNER YANG SAMA)
         function renderTopOwnerChart() {
             const activeData = filteredData.filter(row => getFieldValue(row, 'status_agree').toUpperCase().includes('ACTIVE'));
-            const counts = countFrequency(activeData, 'owner');
-            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const freqList = countFrequencyNormalized(activeData, 'owner');
+            const sorted = freqList.sort((a, b) => b.count - a.count).slice(0, 10);
             
-            const labels = sorted.map(item => item[0]);
-            const values = sorted.map(item => item[1]);
+            const labels = sorted.map(item => item.name);
+            const values = sorted.map(item => item.count);
 
             if (chartOwner) chartOwner.destroy();
             const ctx = document.getElementById('chart-top-owner').getContext('2d');
@@ -682,12 +771,12 @@
         }
 
         function renderWilayahChart() {
-            const counts = countFrequency(filteredData, 'lokasi');
-            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const freqList = countFrequencyNormalized(filteredData, 'lokasi');
+            const sorted = freqList.sort((a, b) => b.count - a.count).slice(0, 10);
             const totalFiltered = filteredData.length;
 
-            const labels = sorted.map(r => r[0]);
-            const values = sorted.map(r => r[1]);
+            const labels = sorted.map(r => r.name);
+            const values = sorted.map(r => r.count);
 
             if (chartWilayah) chartWilayah.destroy();
             const ctx = document.getElementById('chart-sebaran-wilayah').getContext('2d');
@@ -748,7 +837,10 @@
 
         function renderSegmentChart() {
             const activeData = filteredData.filter(row => getFieldValue(row, 'status_agree').toUpperCase().includes('ACTIVE'));
-            const rawCounts = countFrequency(activeData, 'segment');
+            const freqList = countFrequencyNormalized(activeData, 'segment');
+            const rawCounts = {};
+            freqList.forEach(item => { rawCounts[item.name] = item.count; });
+            
             const totalUnits = Object.values(rawCounts).reduce((a, b) => a + b, 0);
 
             if (totalUnits === 0) {
@@ -838,8 +930,9 @@
                 const c = getFieldValue(r, 'customer');
                 const k = getFieldValue(r, 'no_kontrak');
                 if (c && k) {
-                    if (!customerContractMap[c]) customerContractMap[c] = new Set();
-                    customerContractMap[c].add(k);
+                    const normC = normalizeEntityName(c);
+                    if (!customerContractMap[normC]) customerContractMap[normC] = new Set();
+                    customerContractMap[normC].add(k);
                 }
             });
 
@@ -853,7 +946,8 @@
                 const lokasi = getFieldValue(row, 'lokasi') || '-';
                 const segment = getFieldValue(row, 'segment') || '-';
 
-                const totalKontrakCustomer = customerContractMap[cust] ? customerContractMap[cust].size : 1;
+                const normCust = normalizeEntityName(cust);
+                const totalKontrakCustomer = customerContractMap[normCust] ? customerContractMap[normCust].size : 1;
 
                 let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300">${escapeHtml(statusAgree)}</span>`;
                 const stUpper = statusAgree.toUpperCase();
@@ -869,12 +963,12 @@
                 <tr class="hover:bg-slate-700/40 transition">
                     <td class="px-3 py-2.5 text-slate-400 font-mono text-[11px]">${index + 1}</td>
                     <td class="px-3 py-2.5 font-mono text-[11px] text-cyan-400">${escapeHtml(noKontrak)}</td>
-                    <td class="px-3 py-2.5 font-medium text-slate-100">${escapeHtml(cust)}</td>
+                    <td class="px-3 py-2.5 font-medium text-slate-100">${escapeHtml(formatEntityDisplay(cust))}</td>
                     <td class="px-3 py-2.5 text-center font-bold text-amber-400 font-mono text-[11px]">${totalKontrakCustomer} Kontrak</td>
                     <td class="px-3 py-2.5 font-bold text-amber-300 font-mono text-[11px]">${escapeHtml(brand)}</td>
                     <td class="px-3 py-2.5 text-indigo-300 font-mono text-[11px]">${escapeHtml(product)}</td>
                     <td class="px-3 py-2.5">${statusBadge}</td>
-                    <td class="px-3 py-2.5 text-amber-300">${escapeHtml(owner)}</td>
+                    <td class="px-3 py-2.5 text-amber-300">${escapeHtml(formatEntityDisplay(owner))}</td>
                     <td class="px-3 py-2.5 text-cyan-300">${escapeHtml(lokasi)}</td>
                     <td class="px-3 py-2.5">${escapeHtml(segment)}</td>
                 </tr>
