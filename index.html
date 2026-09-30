@@ -81,7 +81,7 @@
             </button>
         </section>
 
-        <!-- KPI SUMMARY CARDS (RINGKASAN UTAMA) -->
+        <!-- KPI SUMMARY CARDS -->
         <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
@@ -109,7 +109,7 @@
                 <p class="text-[11px] text-slate-400 mt-2">Perusahaan pemilik project</p>
             </div>
 
-            <!-- UPGRADE 1: KARTU AR > 30 < 60 DENGAN TOP 3 CUSTOMER & TOP 3 BRAND -->
+            <!-- KARTU AR > 30 < 60 (ACTIVE) -->
             <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">AR &gt; 30 &lt; 60 (ACTIVE)</p>
@@ -126,7 +126,7 @@
                         </div>
                     </div>
                     <div class="pt-1.5 border-t border-slate-700/40">
-                        <p class="text-[9px] text-amber-400 uppercase font-semibold tracking-wider mb-0.5">Top 3 Active AR (Brand):</p>
+                        <p class="text-[9px] text-amber-400 uppercase font-semibold tracking-wider mb-0.5">Top 3 Active AR (Brand Unit):</p>
                         <div id="kpi-ar-top3-brand" class="space-y-0.5 text-[10px] text-slate-300">
                             <span class="text-slate-500 italic">Belum ada data</span>
                         </div>
@@ -135,7 +135,7 @@
             </div>
         </section>
 
-        <!-- KARTU RINCIAN STATUS KONTRAK (STATUS_AGREE) -->
+        <!-- KARTU RINCIAN STATUS KONTRAK -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-slate-800/70 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
@@ -154,7 +154,6 @@
                 </div>
             </div>
 
-            <!-- UPGRADE 2: KARTU KONTRAK PAID OFF DENGAN TOTAL AF KONTRAK -->
             <div class="bg-slate-800/70 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div class="flex flex-col h-full justify-between">
                     <div>
@@ -190,7 +189,7 @@
             </div>
         </section>
 
-        <!-- CHARTS SECTION: TOP 10 CUSTOMER & OWNER (KONTRAK AKTIF ONLY) -->
+        <!-- CHARTS SECTION -->
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 flex flex-col">
                 <h2 class="text-base font-semibold text-white flex items-center gap-2 mb-4">
@@ -211,7 +210,7 @@
             </div>
         </section>
 
-        <!-- SEBARAN LOKASI/KOTA 3D VERTIKAL & DISTRIBUSI SEGMENT (KONTRAK AKTIF ONLY) -->
+        <!-- SEBARAN LOKASI/KOTA & DISTRIBUSI SEGMENT -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 flex flex-col">
                 <h2 class="text-base font-semibold text-white flex items-center gap-2 mb-4">
@@ -286,6 +285,24 @@
             fetchGoogleSheetData();
         });
 
+        // Helper Konversi String Angka/Mata Uang Indonesia ke Float
+        function parseCurrencyNumber(valStr) {
+            if (!valStr) return 0;
+            let cleaned = String(valStr).replace(/Rp|RP|\s/g, '').trim();
+            if (cleaned.includes('.') && cleaned.includes(',')) {
+                cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+            } else if (cleaned.includes('.')) {
+                const parts = cleaned.split('.');
+                if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+                    cleaned = cleaned.replace(/\./g, '');
+                }
+            } else if (cleaned.includes(',')) {
+                cleaned = cleaned.replace(',', '.');
+            }
+            const num = parseFloat(cleaned);
+            return isNaN(num) ? 0 : num;
+        }
+
         function getFieldValue(row, fieldType) {
             if (!row) return '';
             const keys = Object.keys(row);
@@ -298,12 +315,16 @@
                 const key = keys.find(k => /NAMA_CUSTOMER|NAMA CUSTOMER|CUSTOMER/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
+            if (fieldType === 'brand_unit') {
+                // Memprioritaskan BRAND / MERK / DESKRIPSI UNIT
+                const key = keys.find(k => /BRAND_UNIT|BRAND UNIT|^BRAND$\vert{}^MERK$|MERK_UNIT|DESKRIPSI_UNIT|DESKRIPSI BARANG/i.test(k));
+                if (key) return String(row[key]).trim();
+
+                const fallbackKey = keys.find(k => /PRODUCT|PRODUK|BARANG/i.test(k));
+                return fallbackKey ? String(row[fallbackKey]).trim() : '';
+            }
             if (fieldType === 'product') {
                 const key = keys.find(k => /BRAND|MERK|PRODUCT|PRODUK|BARANG/i.test(k));
-                return key ? String(row[key]).trim() : '';
-            }
-            if (fieldType === 'bowheer') {
-                const key = keys.find(k => /DIRECT BOWHEER|BOWHEER/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'owner') {
@@ -331,7 +352,8 @@
                 return key ? String(row[key]).trim() : '0';
             }
             if (fieldType === 'af_kontrak') {
-                const key = keys.find(k => /^AF$|AF_KONTRAK|AMOUNT_FINANCE|FINANCING|PO_AMOUNT/i.test(k));
+                // Penyesuaian regex fleksibel pencarian kolom AF
+                const key = keys.find(k => /AF_KONTRAK|AF KONTRAK|TOTAL_AF|TOTAL AF|AMOUNT_FINANCE|AMOUNT FINANCE|NILAI_AF|NILAI AF|^AF$/i.test(k));
                 return key ? String(row[key]).trim() : '0';
             }
             return '';
@@ -465,28 +487,28 @@
             let activeCount = 0;
             let activeOutstandingSum = 0;
             let paidOffCount = 0;
-            let paidOffAfSum = 0; // Total AF Kontrak Paid Off
+            let paidOffAfSum = 0;
             let cancelCount = 0;
 
             let arActiveCount = 0;
             const arActiveCustomerMap = {};
-            const arActiveBrandMap = {}; // Map Top 3 Brand AR ACTIVE
+            const arActiveBrandMap = {};
 
             filteredData.forEach(row => {
                 const st = getFieldValue(row, 'status_agree').toUpperCase();
                 const isActive = st.includes('ACTIVE');
 
                 const rawOs = getFieldValue(row, 'outstanding');
-                const osNum = parseFloat(rawOs.replace(/[^0-9.-]/g, '')) || 0;
+                const osNum = parseCurrencyNumber(rawOs);
 
                 const rawAf = getFieldValue(row, 'af_kontrak');
-                const afNum = parseFloat(rawAf.replace(/[^0-9.-]/g, '')) || 0;
+                const afNum = parseCurrencyNumber(rawAf);
 
                 if (isActive) {
                     activeCount++;
                     activeOutstandingSum += osNum;
 
-                    // AR Check (ACTIVE Only)
+                    // Cek status AR
                     const arVal = getFieldValue(row, 'ar');
                     const numVal = parseFloat(arVal.replace(/[^0-9.-]/g, ''));
                     let isAR = false;
@@ -501,8 +523,13 @@
                         const custName = getFieldValue(row, 'customer') || 'Unknown';
                         arActiveCustomerMap[custName] = (arActiveCustomerMap[custName] || 0) + 1;
 
-                        const brandName = getFieldValue(row, 'product') || 'Other Brand';
-                        arActiveBrandMap[brandName] = (arActiveBrandMap[brandName] || 0) + 1;
+                        // Ambil data brand unit & abaikan fasilitas non-unit (ABF, FACTORING, FMU)
+                        let brandName = getFieldValue(row, 'brand_unit');
+                        
+                        // Filter menyaring fasilitas non-brand
+                        if (brandName && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(brandName)) {
+                            arActiveBrandMap[brandName] = (arActiveBrandMap[brandName] || 0) + 1;
+                        }
                     }
                 } else if (st.includes('PAID_OFF') || st.includes('PAID OFF') || st.includes('PAIDOFF')) {
                     paidOffCount++;
@@ -531,7 +558,7 @@
                 top3Container.innerHTML = `<span class="text-slate-500 italic">Tidak ada data</span>`;
             }
 
-            // UPGRADE 1: Render Top 3 Brand AR
+            // Render Top 3 Brand Unit AR (Eksklusif Non-ABF/Factoring/FMU)
             const sortedArActiveBrand = Object.entries(arActiveBrandMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
             const top3BrandContainer = document.getElementById('kpi-ar-top3-brand');
             if (sortedArActiveBrand.length > 0) {
@@ -542,24 +569,24 @@
                     </div>
                 `).join('');
             } else {
-                top3BrandContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada data</span>`;
+                top3BrandContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada brand unit AR</span>`;
             }
 
-            // Update KPI Status Contract ACTIVE
+            // Update KPI ACTIVE
             document.getElementById('kpi-status-active').innerText = activeCount;
             document.getElementById('kpi-status-active-sub').innerText = `${totalKontrak > 0 ? ((activeCount/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             
             const formattedOutstanding = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(activeOutstandingSum);
             document.getElementById('kpi-active-outstanding').innerText = formattedOutstanding;
 
-            // UPGRADE 2: Update KPI Status Contract PAID OFF & TOTAL AF KONTRAK
+            // Update KPI PAID OFF
             document.getElementById('kpi-status-paidoff').innerText = paidOffCount;
             document.getElementById('kpi-status-paidoff-sub').innerText = `${totalKontrak > 0 ? ((paidOffCount/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             
             const formattedAfPaidOff = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(paidOffAfSum);
             document.getElementById('kpi-paidoff-af').innerText = formattedAfPaidOff;
 
-            // Update KPI Status Contract CANCEL
+            // Update KPI CANCEL
             document.getElementById('kpi-status-cancel').innerText = cancelCount;
             document.getElementById('kpi-status-cancel-sub').innerText = `${totalKontrak > 0 ? ((cancelCount/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
         }
