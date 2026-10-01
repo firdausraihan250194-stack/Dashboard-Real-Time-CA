@@ -122,7 +122,7 @@
                 <p class="text-[11px] text-slate-400 mt-2">Perusahaan pemilik project</p>
             </div>
 
-            <!-- 4. AR INFO (SUB: AR > 7, AR > 30, AR > 60) -->
+            <!-- 4. AR INFO (AR > 7, AR > 30, AR > 60 MANDIRI) -->
             <div class="lg:col-span-4 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-2">
@@ -174,7 +174,7 @@
             </div>
         </section>
 
-        <!-- KARTU STATUS KONTRAK (AC, CL, PT, RP) -->
+        <!-- KARTU STATUS KONTRAK (AC, CL, PT, RP PERBAIKAN) -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-slate-800/70 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
@@ -355,9 +355,11 @@
             return isNaN(num) ? 0 : num;
         }
 
+        // PARSER ANGKA HARI AR DENGAN PEMBERSIHAN LEBIH LENGKAP
         function parseArDaysNumber(valStr) {
             if (!valStr || valStr === '-' || valStr === 'null' || valStr === 'undefined') return 0;
-            const match = String(valStr).match(/\d+/);
+            const str = String(valStr).trim();
+            const match = str.match(/\d+/);
             if (match) {
                 return parseInt(match[0], 10);
             }
@@ -456,14 +458,18 @@
                 return key ? normalizeSegmentName(row[key]) : '';
             }
             if (fieldType === 'ar') {
-                const key = keys.find(k => /^AR$|AR >|AR30|AR_DAYS|DAYS_AR|OVERDUE/i.test(k));
+                const key = keys.find(k => {
+                    const cleanK = k.trim().toLowerCase().replace(/[\s_]+/g, '');
+                    return cleanK === 'ar' || cleanK.includes('overdue') || cleanK.includes('ardays') || cleanK.includes('ar30');
+                });
                 return key ? String(row[key]).trim() : '0';
             }
             
+            // PEMBACAAN LENGKAP CONTRACT STATUS
             if (fieldType === 'status_agree' || fieldType === 'contract_status') {
                 const key = keys.find(k => {
                     const cleanKey = k.trim().toLowerCase().replace(/[\s_]+/g, '');
-                    return cleanKey === 'contractstatus' || cleanKey === 'statusagree' || cleanKey === 'status';
+                    return cleanKey === 'contractstatus' || cleanKey === 'statusagree' || cleanKey === 'status' || cleanKey === 'contractstat';
                 });
                 return key ? String(row[key]).trim() : '';
             }
@@ -483,13 +489,14 @@
             return '';
         }
 
+        // NORMALISASI KODE STATUS BERBAGAI VARIASI TEKS
         function normalizeContractStatus(rawStatus) {
             if (!rawStatus) return 'OTHER';
             const s = String(rawStatus).toUpperCase().trim();
             if (s === 'AC' || s.includes('ACTIVE') || s.includes('AKTIF')) return 'AC';
-            if (s === 'CL' || s.includes('CLOSE') || s.includes('SELESAI')) return 'CL';
+            if (s === 'CL' || s.includes('CLOSE') || s.includes('CLOSED') || s.includes('SELESAI')) return 'CL';
             if (s === 'PT' || s.includes('PAID') || s.includes('LUNAS')) return 'PT';
-            if (s === 'RP' || s.includes('REPO') || s.includes('TARIK')) return 'RP';
+            if (s === 'RP' || s.includes('REPO') || s.includes('REPOSSESSED') || s.includes('TARIK')) return 'RP';
             return 'OTHER';
         }
 
@@ -656,6 +663,7 @@
                 yearMap[yr].count++;
                 yearMap[yr].totalAf += afNumRow;
 
+                // KALKULASI DARI NOMINAL KODE STATUS
                 const statusCode = normalizeContractStatus(getFieldValue(row, 'contract_status'));
                 if (statusCode === 'AC') {
                     countAC++;
@@ -670,6 +678,7 @@
                 }
             });
 
+            // TOTAL KONTRAK PRESISI
             const totalKontrak = countAC + countCL + countPT + countRP;
             document.getElementById('kpi-total-unit').innerText = totalKontrak;
 
@@ -695,7 +704,7 @@
                 yearBreakdownContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada data tanggal</span>`;
             }
 
-            // KARTU STATUS KONTRAK
+            // KARTU STATUS KONTRAK (AC, CL, PT, RP)
             document.getElementById('kpi-status-ac').innerText = countAC;
             document.getElementById('kpi-status-ac-sub').innerText = `${totalKontrak > 0 ? ((countAC/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             document.getElementById('kpi-ac-outstanding').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumOutstandingAC);
@@ -710,7 +719,7 @@
             document.getElementById('kpi-status-rp').innerText = countRP;
             document.getElementById('kpi-status-rp-sub').innerText = `${totalKontrak > 0 ? ((countRP/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
 
-            // AR INFO (SUB: AR > 7, AR > 30, AR > 60)
+            // AR INFO (MANDIRI KATEGORI > 7, > 30, > 60)
             const arBaseData = filteredData.filter(row => {
                 if (currentArFilter === 'ALL') return true;
                 return normalizeContractStatus(getFieldValue(row, 'contract_status')) === currentArFilter;
