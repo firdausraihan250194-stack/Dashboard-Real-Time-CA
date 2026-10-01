@@ -104,26 +104,24 @@
                 </div>
             </div>
 
-            <!-- 2. TOTAL CUSTOMER -->
-            <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
-                <div>
-                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">TOTAL CUSTOMER</p>
-                    <h3 id="kpi-total-customer" class="text-2xl lg:text-3xl font-bold text-indigo-400 mt-1">0</h3>
+            <!-- 2 & 3. GABUNGAN CUSTOMER & PROJECT OWNER -->
+            <div class="lg:col-span-3 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
+                <div class="grid grid-cols-2 gap-2 h-full items-center">
+                    <div class="border-r border-slate-700/60 pr-2">
+                        <p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">TOTAL CUSTOMER</p>
+                        <h3 id="kpi-total-customer" class="text-2xl lg:text-3xl font-bold text-indigo-400 mt-1">0</h3>
+                        <p class="text-[10px] text-slate-400 mt-1">Entitas customer unik</p>
+                    </div>
+                    <div class="pl-2">
+                        <p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">PROJECT OWNER</p>
+                        <h3 id="kpi-total-owner" class="text-2xl lg:text-3xl font-bold text-amber-400 mt-1">0</h3>
+                        <p class="text-[10px] text-slate-400 mt-1">Pemilik project</p>
+                    </div>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-2">Entitas customer unik</p>
             </div>
 
-            <!-- 3. PROJECT OWNER -->
-            <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
-                <div>
-                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">PROJECT OWNER</p>
-                    <h3 id="kpi-total-owner" class="text-2xl lg:text-3xl font-bold text-amber-400 mt-1">0</h3>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-2">Perusahaan pemilik project</p>
-            </div>
-
-            <!-- 4. AR INFO -->
-            <div class="lg:col-span-4 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
+            <!-- 4. AR INFO (DIPERBESAR MENJADI COL-SPAN-5) -->
+            <div class="lg:col-span-5 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-2">
                         <p class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -174,7 +172,7 @@
             </div>
         </section>
 
-        <!-- KARTU STATUS KONTRAK (AC, CL, PT, RP) -->
+        <!-- KARTU STATUS KONTRAK (AC, CL, PT, RP PERBAIKAN TOTAL AF & OS) -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-slate-800/70 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
@@ -200,6 +198,10 @@
                     </p>
                     <h3 id="kpi-status-cl" class="text-2xl font-bold text-white mt-1">0</h3>
                     <p id="kpi-status-cl-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                    <div class="mt-2 pt-1.5 border-t border-slate-600/20">
+                        <p class="text-[10px] text-slate-400 uppercase font-medium">Total AF Kontrak:</p>
+                        <p id="kpi-cl-af" class="text-xs font-bold text-slate-300 font-mono mt-0.5">Rp 0</p>
+                    </div>
                 </div>
                 <div class="p-3 bg-slate-700/30 rounded-xl text-slate-400 border border-slate-600/20 self-start">
                     <i class="fa-solid fa-box-archive text-xl"></i>
@@ -230,6 +232,10 @@
                     </p>
                     <h3 id="kpi-status-rp" class="text-2xl font-bold text-white mt-1">0</h3>
                     <p id="kpi-status-rp-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari Total Kontrak</p>
+                    <div class="mt-2 pt-1.5 border-t border-rose-500/20">
+                        <p class="text-[10px] text-slate-400 uppercase font-medium">Total Outstanding:</p>
+                        <p id="kpi-rp-outstanding" class="text-xs font-bold text-rose-300 font-mono mt-0.5">Rp 0</p>
+                    </div>
                 </div>
                 <div class="p-3 bg-rose-500/10 rounded-xl text-rose-400 border border-rose-500/20 self-start">
                     <i class="fa-solid fa-ban text-xl"></i>
@@ -453,7 +459,6 @@
                 return key ? normalizeSegmentName(row[key]) : '';
             }
             
-            // DEDIKASI MEMBACA 3 KOLOM AR MASING-MASING (KOLOM S, T, U DI GOOGLE SHEET)
             if (fieldType === 'ar7') {
                 const key = keys.find(k => /AR\s*>\s*7|AR7/i.test(k));
                 return key ? parseNumberOnly(row[key]) : 0;
@@ -467,7 +472,6 @@
                 return key ? parseNumberOnly(row[key]) : 0;
             }
 
-            // DEDIKASI DENGAN PRIORITAS KOLOM CONTRACT_STA (KOLOM W DI GOOGLE SHEET)
             if (fieldType === 'status_agree' || fieldType === 'contract_status') {
                 let key = keys.find(k => /^CONTRACT_STA$/i.test(k) || /^CONTRACT_STATUS$/i.test(k) || /CONTRACT.*STA/i.test(k));
                 if (!key) {
@@ -491,7 +495,6 @@
             return '';
         }
 
-        // FLEKSIBEL PEMBACAAN KODE AC, CL, PT, RP DARI KOLOM CONTRACT_STA / STATUS_AGRE
         function normalizeContractStatus(rawStatus) {
             if (!rawStatus) return 'OTHER';
             const s = String(rawStatus).toUpperCase().trim();
@@ -639,9 +642,9 @@
             const uniqueOwners = new Set();
 
             let countAC = 0, sumOutstandingAC = 0;
-            let countCL = 0;
+            let countCL = 0, sumAfCL = 0;
             let countPT = 0, sumAfPT = 0;
-            let countRP = 0;
+            let countRP = 0, sumOutstandingRP = 0;
 
             filteredData.forEach(row => {
                 const cName = getFieldValue(row, 'customer');
@@ -665,22 +668,22 @@
                 yearMap[yr].count++;
                 yearMap[yr].totalAf += afNumRow;
 
-                // KALKULASI BERDASARKAN CONTRACT_STA / STATUS_AGRE
                 const statusCode = normalizeContractStatus(getFieldValue(row, 'contract_status'));
                 if (statusCode === 'AC') {
                     countAC++;
                     sumOutstandingAC += osNumRow;
                 } else if (statusCode === 'CL') {
                     countCL++;
+                    sumAfCL += afNumRow;
                 } else if (statusCode === 'PT') {
                     countPT++;
                     sumAfPT += afNumRow;
                 } else if (statusCode === 'RP') {
                     countRP++;
+                    sumOutstandingRP += osNumRow;
                 }
             });
 
-            // TOTAL KONTRAK PRESISI
             const totalKontrak = countAC + countCL + countPT + countRP;
             document.getElementById('kpi-total-unit').innerText = totalKontrak;
 
@@ -706,13 +709,14 @@
                 yearBreakdownContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada data tanggal</span>`;
             }
 
-            // KARTU STATUS KONTRAK
+            // KARTU STATUS KONTRAK METRIK DETAIL
             document.getElementById('kpi-status-ac').innerText = countAC;
             document.getElementById('kpi-status-ac-sub').innerText = `${totalKontrak > 0 ? ((countAC/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             document.getElementById('kpi-ac-outstanding').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumOutstandingAC);
 
             document.getElementById('kpi-status-cl').innerText = countCL;
             document.getElementById('kpi-status-cl-sub').innerText = `${totalKontrak > 0 ? ((countCL/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
+            document.getElementById('kpi-cl-af').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumAfCL);
 
             document.getElementById('kpi-status-pt').innerText = countPT;
             document.getElementById('kpi-status-pt-sub').innerText = `${totalKontrak > 0 ? ((countPT/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
@@ -720,8 +724,9 @@
 
             document.getElementById('kpi-status-rp').innerText = countRP;
             document.getElementById('kpi-status-rp-sub').innerText = `${totalKontrak > 0 ? ((countRP/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
+            document.getElementById('kpi-rp-outstanding').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumOutstandingRP);
 
-            // AKUMULASI DARI DEDIKASI KOLOM S, T, U
+            // AR INFO (SUB: AR > 7, AR > 30, AR > 60)
             const arBaseData = filteredData.filter(row => {
                 if (currentArFilter === 'ALL') return true;
                 return normalizeContractStatus(getFieldValue(row, 'contract_status')) === currentArFilter;
