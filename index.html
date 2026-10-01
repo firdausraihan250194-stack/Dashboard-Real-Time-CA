@@ -47,7 +47,7 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- FILTER SECTION DENGAN BUTTON FILTER CONTRACT STATUS -->
+        <!-- FILTER SECTION -->
         <section class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-sm">
             <div class="flex items-center gap-2 text-sm text-slate-300 font-medium">
                 <i class="fa-solid fa-filter text-indigo-400"></i>
@@ -281,12 +281,23 @@
             </div>
         </section>
 
-        <!-- SEBARAN PROVINSI (TOP 10) & DISTRIBUSI SEGMENT -->
+        <!-- SEBARAN PROVINSI (TOP 10 DENGAN TOMBOL FILTER CONTRACT STATUS) & DISTRIBUSI SEGMENT -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 flex flex-col">
-                <h2 class="text-base font-semibold text-white flex items-center gap-2 mb-4">
-                    <i class="fa-solid fa-map-location-dot text-cyan-400"></i> Sebaran Provinsi (Top 10)
-                </h2>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot text-cyan-400"></i> Sebaran Provinsi (Top 10)
+                    </h2>
+                    <!-- TOMBOL FILTER KHUSUS PROVINSI -->
+                    <div class="flex items-center bg-slate-900 p-1 rounded-lg border border-slate-700 text-xs">
+                        <button onclick="setProvStatusFilter('ALL')" id="prov-btn-ALL" class="px-2.5 py-0.5 rounded font-medium bg-indigo-600 text-white">ALL</button>
+                        <button onclick="setProvStatusFilter('AC')" id="prov-btn-AC" class="px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white">AC</button>
+                        <button onclick="setProvStatusFilter('CL')" id="prov-btn-CL" class="px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white">CL</button>
+                        <button onclick="setProvStatusFilter('PT')" id="prov-btn-PT" class="px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white">PT</button>
+                        <button onclick="setProvStatusFilter('RP')" id="prov-btn-RP" class="px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white">RP</button>
+                    </div>
+                </div>
+
                 <div class="relative flex-grow min-h-[320px]">
                     <canvas id="chart-sebaran-wilayah"></canvas>
                 </div>
@@ -349,6 +360,7 @@
         let rawData = [];
         let filteredData = [];
         let currentArFilter = 'ALL';
+        let currentProvFilter = 'ALL';
 
         let chartCustomer = null;
         let chartOwner = null;
@@ -359,19 +371,19 @@
             fetchGoogleSheetData();
         });
 
-        // PEMETAAN KOTA/LOKASI KE PROVINSI
+        // PEMETAAN LOKASI KE PROVINSI
         function mapCityToProvince(cityStr) {
             if (!cityStr) return 'Lainnya';
             const str = String(cityStr).trim().toLowerCase();
 
             if (str.includes('solok') || str.includes('padang') || str.includes('sumbar')) return 'Sumatera Barat';
             if (str.includes('jakarta')) return 'DKI Jakarta';
-            if (str.includes('bogor') || str.includes('bandung') || str.includes('bekasi') || str.includes('depok') || str.includes('cirebon') || str.includes('sukabumi')) return 'Jawa Barat';
+            if (str.includes('bogor') || str.includes('bandung') || str.includes('bekasi') || str.includes('depok') || str.includes('lahat') || str.includes('cirebon') || str.includes('sukabumi')) return 'Jawa Barat';
             if (str.includes('kutai') || str.includes('samarinda') || str.includes('balikpapan') || str.includes('paser') || str.includes('berau') || str.includes('kaltim')) return 'Kalimantan Timur';
             if (str.includes('morowali') || str.includes('palu') || str.includes('sulteng')) return 'Sulawesi Tengah';
             if (str.includes('halmahera') || str.includes('ternate') || str.includes('malut')) return 'Maluku Utara';
             if (str.includes('jambi')) return 'Jambi';
-            if (str.includes('konawe') || str.includes('kendari') || str.includes('sultra')) return 'Sulawesi Tenggara';
+            if (str.includes('konawe') || str.includes('kendari') || str.includes('kolaka') || str.includes('sultra')) return 'Sulawesi Tenggara';
             if (str.includes('surabaya') || str.includes('banyuwangi') || str.includes('gresik') || str.includes('jatim')) return 'Jawa Timur';
             if (str.includes('semarang') || str.includes('solo') || str.includes('jateng')) return 'Jawa Tengah';
             if (str.includes('palembang') || str.includes('sumsel')) return 'Sumatera Selatan';
@@ -681,6 +693,20 @@
             renderKPIs();
         }
 
+        // FUNGSI KHUSUS FILTER STATUS PADA GRAFIK SEBARAN PROVINSI
+        function setProvStatusFilter(status) {
+            currentProvFilter = status;
+            ['ALL', 'AC', 'CL', 'PT', 'RP'].forEach(s => {
+                const btn = document.getElementById(`prov-btn-${s}`);
+                if (s === status) {
+                    btn.className = 'px-2.5 py-0.5 rounded font-medium bg-indigo-600 text-white';
+                } else {
+                    btn.className = 'px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white';
+                }
+            });
+            renderWilayahChart();
+        }
+
         function renderKPIs() {
             const yearMap = {};
             let grandTotalAfSum = 0;
@@ -982,10 +1008,16 @@
             });
         }
 
+        // PENYARINGAN PROVINSI BERDASARKAN TOMBOL FILTER KONTRAK STATUS
         function renderWilayahChart() {
-            const freqList = countFrequencyNormalized(filteredData, 'lokasi');
+            const provBaseData = filteredData.filter(row => {
+                if (currentProvFilter === 'ALL') return true;
+                return normalizeContractStatus(getFieldValue(row, 'contract_status')) === currentProvFilter;
+            });
+
+            const freqList = countFrequencyNormalized(provBaseData, 'lokasi');
             const sorted = freqList.sort((a, b) => b.count - a.count).slice(0, 10);
-            const totalFiltered = filteredData.length;
+            const totalFiltered = provBaseData.length;
 
             const labels = sorted.map(r => r.name);
             const values = sorted.map(r => r.count);
