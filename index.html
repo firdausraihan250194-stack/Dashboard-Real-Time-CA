@@ -81,10 +81,10 @@
             </button>
         </section>
 
-        <!-- KPI SUMMARY CARDS (GRID SYSTEM 12 KOLOM) -->
+        <!-- KPI SUMMARY CARDS -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4">
             
-            <!-- 1. TOTAL KONTRAK (COL-SPAN 4) -->
+            <!-- 1. TOTAL KONTRAK -->
             <div class="lg:col-span-4 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">TOTAL KONTRAK</p>
@@ -104,7 +104,7 @@
                 </div>
             </div>
 
-            <!-- 2. TOTAL CUSTOMER (COL-SPAN 2) -->
+            <!-- 2. TOTAL CUSTOMER -->
             <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">TOTAL CUSTOMER</p>
@@ -113,7 +113,7 @@
                 <p class="text-[11px] text-slate-400 mt-2">Entitas customer unik</p>
             </div>
 
-            <!-- 3. PROJECT OWNER (COL-SPAN 2) -->
+            <!-- 3. PROJECT OWNER -->
             <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">PROJECT OWNER</p>
@@ -122,14 +122,13 @@
                 <p class="text-[11px] text-slate-400 mt-2">Perusahaan pemilik project</p>
             </div>
 
-            <!-- 4. AR INFO (COL-SPAN 4) -->
+            <!-- 4. AR INFO (SUB: AR > 7, AR > 30, AR > 60) -->
             <div class="lg:col-span-4 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-2">
                         <p class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                             <i class="fa-solid fa-triangle-exclamation"></i> AR INFO
                         </p>
-                        <!-- Button Filter Contract Status -->
                         <div class="flex items-center bg-slate-900 p-0.5 rounded-lg border border-slate-700 text-[10px]">
                             <button onclick="setArStatusFilter('ALL')" id="ar-btn-ALL" class="px-2 py-0.5 rounded font-medium bg-indigo-600 text-white">ALL</button>
                             <button onclick="setArStatusFilter('AC')" id="ar-btn-AC" class="px-2 py-0.5 rounded font-medium text-slate-400 hover:text-white">AC</button>
@@ -139,36 +138,34 @@
                         </div>
                     </div>
 
-                    <!-- Ringkasan Kategori AR >30, AR >60, AR >90 -->
                     <div class="grid grid-cols-3 gap-2 py-1.5 border-y border-slate-700/60 bg-slate-900/40 rounded-xl px-2">
+                        <div class="text-center border-r border-slate-700/50">
+                            <span class="text-[9px] text-yellow-400 font-bold block">AR &gt; 7</span>
+                            <span id="ar7-val" class="text-xs font-bold text-white block">0 Kr</span>
+                            <span id="ar7-pct" class="text-[9px] text-slate-400">0%</span>
+                        </div>
                         <div class="text-center border-r border-slate-700/50">
                             <span class="text-[9px] text-amber-400 font-bold block">AR &gt; 30</span>
                             <span id="ar30-val" class="text-xs font-bold text-white block">0 Kr</span>
                             <span id="ar30-pct" class="text-[9px] text-slate-400">0%</span>
                         </div>
-                        <div class="text-center border-r border-slate-700/50">
-                            <span class="text-[9px] text-orange-400 font-bold block">AR &gt; 60</span>
+                        <div class="text-center">
+                            <span class="text-[9px] text-rose-400 font-bold block">AR &gt; 60</span>
                             <span id="ar60-val" class="text-xs font-bold text-white block">0 Kr</span>
                             <span id="ar60-pct" class="text-[9px] text-slate-400">0%</span>
-                        </div>
-                        <div class="text-center">
-                            <span class="text-[9px] text-rose-400 font-bold block">AR &gt; 90</span>
-                            <span id="ar90-val" class="text-xs font-bold text-white block">0 Kr</span>
-                            <span id="ar90-pct" class="text-[9px] text-slate-400">0%</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Top 3 Customer & Top 3 Brand Unit per Kategori -->
                 <div class="mt-2 space-y-2 text-[10px]">
                     <div>
-                        <p class="text-[9px] text-slate-400 uppercase font-semibold tracking-wider mb-1">Top 3 Customer (AR &gt; 30 / &gt; 60 / &gt; 90):</p>
+                        <p class="text-[9px] text-slate-400 uppercase font-semibold tracking-wider mb-1">Top 3 Customer (AR &gt; 7 / &gt; 30 / &gt; 60):</p>
                         <div id="ar-top3-customer" class="space-y-0.5 text-slate-300">
                             <span class="text-slate-500 italic">Memuat data...</span>
                         </div>
                     </div>
                     <div class="pt-1 border-t border-slate-700/40">
-                        <p class="text-[9px] text-amber-400 uppercase font-semibold tracking-wider mb-1">Top 3 Brand Unit (AR &gt; 30 / &gt; 60 / &gt; 90):</p>
+                        <p class="text-[9px] text-amber-400 uppercase font-semibold tracking-wider mb-1">Top 3 Brand Unit (AR &gt; 7 / &gt; 30 / &gt; 60):</p>
                         <div id="ar-top3-brand" class="space-y-0.5 text-slate-300">
                             <span class="text-slate-500 italic">Memuat data...</span>
                         </div>
@@ -177,9 +174,8 @@
             </div>
         </section>
 
-        <!-- KARTU RINCIAN STATUS KONTRAK (AC, CL, PT, RP) -->
+        <!-- KARTU STATUS KONTRAK (AC, CL, PT, RP) -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- AC: Active -->
             <div class="bg-slate-800/70 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-medium text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -197,7 +193,6 @@
                 </div>
             </div>
 
-            <!-- CL: Close -->
             <div class="bg-slate-800/70 border border-slate-600/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -211,7 +206,6 @@
                 </div>
             </div>
 
-            <!-- PT: Paid Off -->
             <div class="bg-slate-800/70 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-medium text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -229,7 +223,6 @@
                 </div>
             </div>
 
-            <!-- RP: Repo -->
             <div class="bg-slate-800/70 border border-rose-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-medium text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -362,6 +355,15 @@
             return isNaN(num) ? 0 : num;
         }
 
+        function parseArDaysNumber(valStr) {
+            if (!valStr || valStr === '-' || valStr === 'null' || valStr === 'undefined') return 0;
+            const match = String(valStr).match(/\d+/);
+            if (match) {
+                return parseInt(match[0], 10);
+            }
+            return 0;
+        }
+
         function extractYearFromDate(dateStr) {
             if (!dateStr) return 'Lainnya';
             const str = String(dateStr).trim();
@@ -392,7 +394,6 @@
             return cleaned;
         }
 
-        // NORMALISASI SEGMENT UNTUK MENGHILANGKAN KATEGORI DUPLIKAT (INSTRUKSI 2)
         function normalizeSegmentName(rawSegment) {
             if (!rawSegment) return '';
             let cleaned = String(rawSegment).trim().replace(/\s+/g, ' ');
@@ -417,7 +418,6 @@
                 return 'Construction';
             }
 
-            // Capitalize First Letter Setiap Kata
             return cleaned.replace(/\w\S*/g, function(txt){
                 return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
             });
@@ -456,13 +456,15 @@
                 return key ? normalizeSegmentName(row[key]) : '';
             }
             if (fieldType === 'ar') {
-                const key = keys.find(k => /^AR$|AR > 30|AR_30|AR30/i.test(k));
+                const key = keys.find(k => /^AR$|AR >|AR30|AR_DAYS|DAYS_AR|OVERDUE/i.test(k));
                 return key ? String(row[key]).trim() : '0';
             }
             
-            // PERBAIKAN INSTRUKSI 1: MEMBACA KOLOM contract_status SECARA PRESISI DARI GOOGLE SHEETS
             if (fieldType === 'status_agree' || fieldType === 'contract_status') {
-                const key = keys.find(k => /^contract_status$/i.test(k) || /contract_status|contract status|STATUS_AGREE|STATUS AGREE|STATUS/i.test(k));
+                const key = keys.find(k => {
+                    const cleanKey = k.trim().toLowerCase().replace(/[\s_]+/g, '');
+                    return cleanKey === 'contractstatus' || cleanKey === 'statusagree' || cleanKey === 'status';
+                });
                 return key ? String(row[key]).trim() : '';
             }
 
@@ -481,14 +483,13 @@
             return '';
         }
 
-        // Helper Normalisasi Kode Contract Status (AC, CL, PT, RP)
         function normalizeContractStatus(rawStatus) {
             if (!rawStatus) return 'OTHER';
             const s = String(rawStatus).toUpperCase().trim();
-            if (s === 'AC' || s.includes('ACTIVE')) return 'AC';
-            if (s === 'CL' || s.includes('CLOSE')) return 'CL';
-            if (s === 'PT' || s.includes('PAID')) return 'PT';
-            if (s === 'RP' || s.includes('REPO')) return 'RP';
+            if (s === 'AC' || s.includes('ACTIVE') || s.includes('AKTIF')) return 'AC';
+            if (s === 'CL' || s.includes('CLOSE') || s.includes('SELESAI')) return 'CL';
+            if (s === 'PT' || s.includes('PAID') || s.includes('LUNAS')) return 'PT';
+            if (s === 'RP' || s.includes('REPO') || s.includes('TARIK')) return 'RP';
             return 'OTHER';
         }
 
@@ -547,7 +548,6 @@
         }
 
         function populateFilterDropdowns() {
-            // INSTRUKSI 2: Filter Segment unik yang telah dinormalisasi
             const segments = [...new Set(rawData.map(d => getFieldValue(d, 'segment')).filter(Boolean))];
             const customers = [...new Set(rawData.map(d => getFieldValue(d, 'customer')).filter(Boolean))];
             const lokasis = [...new Set(rawData.map(d => getFieldValue(d, 'lokasi')).filter(Boolean))];
@@ -623,9 +623,6 @@
         }
 
         function renderKPIs() {
-            const totalKontrak = filteredData.length;
-            document.getElementById('kpi-total-unit').innerText = totalKontrak;
-
             const yearMap = {};
             let grandTotalAfSum = 0;
             
@@ -659,7 +656,6 @@
                 yearMap[yr].count++;
                 yearMap[yr].totalAf += afNumRow;
 
-                // Membaca contract_status dari Google Sheets
                 const statusCode = normalizeContractStatus(getFieldValue(row, 'contract_status'));
                 if (statusCode === 'AC') {
                     countAC++;
@@ -673,6 +669,9 @@
                     countRP++;
                 }
             });
+
+            const totalKontrak = countAC + countCL + countPT + countRP;
+            document.getElementById('kpi-total-unit').innerText = totalKontrak;
 
             document.getElementById('kpi-total-customer').innerText = uniqueCustomers.size;
             document.getElementById('kpi-total-owner').innerText = uniqueOwners.size;
@@ -696,7 +695,7 @@
                 yearBreakdownContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada data tanggal</span>`;
             }
 
-            // Kartu Status Kontrak (AC, CL, PT, RP)
+            // KARTU STATUS KONTRAK
             document.getElementById('kpi-status-ac').innerText = countAC;
             document.getElementById('kpi-status-ac-sub').innerText = `${totalKontrak > 0 ? ((countAC/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             document.getElementById('kpi-ac-outstanding').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumOutstandingAC);
@@ -711,45 +710,49 @@
             document.getElementById('kpi-status-rp').innerText = countRP;
             document.getElementById('kpi-status-rp-sub').innerText = `${totalKontrak > 0 ? ((countRP/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
 
-            // Kartu AR Info (AR > 30, AR > 60, AR > 90)
+            // AR INFO (SUB: AR > 7, AR > 30, AR > 60)
             const arBaseData = filteredData.filter(row => {
                 if (currentArFilter === 'ALL') return true;
                 return normalizeContractStatus(getFieldValue(row, 'contract_status')) === currentArFilter;
             });
 
             const totalArBase = arBaseData.length;
-            let ar30Count = 0, ar60Count = 0, ar90Count = 0;
+            let ar7Count = 0, ar30Count = 0, ar60Count = 0;
 
-            const custArMap = { 30: {}, 60: {}, 90: {} };
-            const brandArMap = { 30: {}, 60: {}, 90: {} };
+            const custArMap = { 7: {}, 30: {}, 60: {} };
+            const brandArMap = { 7: {}, 30: {}, 60: {} };
 
             arBaseData.forEach(row => {
-                const arVal = parseCurrencyNumber(getFieldValue(row, 'ar'));
+                const rawArStr = getFieldValue(row, 'ar');
+                const arDaysNum = parseArDaysNumber(rawArStr);
                 const cName = formatEntityDisplay(getFieldValue(row, 'customer') || 'Unknown');
                 const bName = getFieldValue(row, 'brand_unit');
 
-                if (arVal > 30) {
+                if (arDaysNum > 7) {
+                    ar7Count++;
+                    custArMap[7][cName] = (custArMap[7][cName] || 0) + 1;
+                    if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
+                        brandArMap[7][bName] = (brandArMap[7][bName] || 0) + 1;
+                    }
+                }
+                if (arDaysNum > 30) {
                     ar30Count++;
                     custArMap[30][cName] = (custArMap[30][cName] || 0) + 1;
                     if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
                         brandArMap[30][bName] = (brandArMap[30][bName] || 0) + 1;
                     }
                 }
-                if (arVal > 60) {
+                if (arDaysNum > 60) {
                     ar60Count++;
                     custArMap[60][cName] = (custArMap[60][cName] || 0) + 1;
                     if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
                         brandArMap[60][bName] = (brandArMap[60][bName] || 0) + 1;
                     }
                 }
-                if (arVal > 90) {
-                    ar90Count++;
-                    custArMap[90][cName] = (custArMap[90][cName] || 0) + 1;
-                    if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
-                        brandArMap[90][bName] = (brandArMap[90][bName] || 0) + 1;
-                    }
-                }
             });
+
+            document.getElementById('ar7-val').innerText = `${ar7Count} Kr`;
+            document.getElementById('ar7-pct').innerText = `${totalArBase > 0 ? ((ar7Count/totalArBase)*100).toFixed(1) : 0}%`;
 
             document.getElementById('ar30-val').innerText = `${ar30Count} Kr`;
             document.getElementById('ar30-pct').innerText = `${totalArBase > 0 ? ((ar30Count/totalArBase)*100).toFixed(1) : 0}%`;
@@ -757,51 +760,48 @@
             document.getElementById('ar60-val').innerText = `${ar60Count} Kr`;
             document.getElementById('ar60-pct').innerText = `${totalArBase > 0 ? ((ar60Count/totalArBase)*100).toFixed(1) : 0}%`;
 
-            document.getElementById('ar90-val').innerText = `${ar90Count} Kr`;
-            document.getElementById('ar90-pct').innerText = `${totalArBase > 0 ? ((ar90Count/totalArBase)*100).toFixed(1) : 0}%`;
-
-            // Top 3 Customer per Kategori
+            // Top 3 Customer
+            const top3Cust7 = Object.entries(custArMap[7]).sort((a,b)=>b[1]-a[1]).slice(0,3);
             const top3Cust30 = Object.entries(custArMap[30]).sort((a,b)=>b[1]-a[1]).slice(0,3);
             const top3Cust60 = Object.entries(custArMap[60]).sort((a,b)=>b[1]-a[1]).slice(0,3);
-            const top3Cust90 = Object.entries(custArMap[90]).sort((a,b)=>b[1]-a[1]).slice(0,3);
 
             const custContainer = document.getElementById('ar-top3-customer');
             custContainer.innerHTML = `
                 <div class="space-y-1">
                     <div class="flex items-center justify-between text-[9px] border-b border-slate-800 pb-0.5">
+                        <span class="text-yellow-400 font-semibold">&gt;7 Days:</span>
+                        <span class="text-slate-300 font-mono">${top3Cust7.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[9px] border-b border-slate-800 pb-0.5">
                         <span class="text-amber-400 font-semibold">&gt;30 Days:</span>
                         <span class="text-slate-300 font-mono">${top3Cust30.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
                     </div>
-                    <div class="flex items-center justify-between text-[9px] border-b border-slate-800 pb-0.5">
-                        <span class="text-orange-400 font-semibold">&gt;60 Days:</span>
-                        <span class="text-slate-300 font-mono">${top3Cust60.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
-                    </div>
                     <div class="flex items-center justify-between text-[9px]">
-                        <span class="text-rose-400 font-semibold">&gt;90 Days:</span>
-                        <span class="text-slate-300 font-mono">${top3Cust90.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
+                        <span class="text-rose-400 font-semibold">&gt;60 Days:</span>
+                        <span class="text-slate-300 font-mono">${top3Cust60.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
                     </div>
                 </div>
             `;
 
-            // Top 3 Brand Unit per Kategori
+            // Top 3 Brand Unit
+            const top3Brand7 = Object.entries(brandArMap[7]).sort((a,b)=>b[1]-a[1]).slice(0,3);
             const top3Brand30 = Object.entries(brandArMap[30]).sort((a,b)=>b[1]-a[1]).slice(0,3);
             const top3Brand60 = Object.entries(brandArMap[60]).sort((a,b)=>b[1]-a[1]).slice(0,3);
-            const top3Brand90 = Object.entries(brandArMap[90]).sort((a,b)=>b[1]-a[1]).slice(0,3);
 
             const brandContainer = document.getElementById('ar-top3-brand');
             brandContainer.innerHTML = `
                 <div class="space-y-1">
                     <div class="flex items-center justify-between text-[9px] border-b border-slate-800 pb-0.5">
+                        <span class="text-yellow-400 font-semibold">&gt;7 Days:</span>
+                        <span class="text-slate-300 font-mono">${top3Brand7.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[9px] border-b border-slate-800 pb-0.5">
                         <span class="text-amber-400 font-semibold">&gt;30 Days:</span>
                         <span class="text-slate-300 font-mono">${top3Brand30.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
                     </div>
-                    <div class="flex items-center justify-between text-[9px] border-b border-slate-800 pb-0.5">
-                        <span class="text-orange-400 font-semibold">&gt;60 Days:</span>
-                        <span class="text-slate-300 font-mono">${top3Brand60.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
-                    </div>
                     <div class="flex items-center justify-between text-[9px]">
-                        <span class="text-rose-400 font-semibold">&gt;90 Days:</span>
-                        <span class="text-slate-300 font-mono">${top3Brand90.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
+                        <span class="text-rose-400 font-semibold">&gt;60 Days:</span>
+                        <span class="text-slate-300 font-mono">${top3Brand60.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
                     </div>
                 </div>
             `;
@@ -976,7 +976,6 @@
             });
         }
 
-        // PERBAIKAN GRAFIK DISTRIBUSI SEGMENT UNTUK MENGGABUNGKAN KATEGORI DUPLIKAT
         function renderSegmentChart() {
             const activeData = filteredData.filter(row => normalizeContractStatus(getFieldValue(row, 'contract_status')) === 'AC');
             const rawCounts = {};
