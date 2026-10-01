@@ -122,7 +122,7 @@
                 <p class="text-[11px] text-slate-400 mt-2">Perusahaan pemilik project</p>
             </div>
 
-            <!-- 4. AR INFO (AR > 7, AR > 30, AR > 60 MANDIRI) -->
+            <!-- 4. AR INFO -->
             <div class="lg:col-span-4 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-2">
@@ -174,7 +174,7 @@
             </div>
         </section>
 
-        <!-- KARTU STATUS KONTRAK (AC, CL, PT, RP PERBAIKAN) -->
+        <!-- KARTU STATUS KONTRAK (AC, CL, PT, RP) -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-slate-800/70 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div>
@@ -355,15 +355,10 @@
             return isNaN(num) ? 0 : num;
         }
 
-        // PARSER ANGKA HARI AR DENGAN PEMBERSIHAN LEBIH LENGKAP
-        function parseArDaysNumber(valStr) {
+        function parseNumberOnly(valStr) {
             if (!valStr || valStr === '-' || valStr === 'null' || valStr === 'undefined') return 0;
-            const str = String(valStr).trim();
-            const match = str.match(/\d+/);
-            if (match) {
-                return parseInt(match[0], 10);
-            }
-            return 0;
+            const match = String(valStr).match(/\d+/);
+            return match ? parseInt(match[0], 10) : 0;
         }
 
         function extractYearFromDate(dateStr) {
@@ -434,7 +429,7 @@
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'customer') {
-                const key = keys.find(k => /NAMA_CUSTOMER|NAMA CUSTOMER|CUSTOMER/i.test(k));
+                const key = keys.find(k => /NAMA_CUSTOMER|NAMA CUSTOMER|CUSTOMER|Group Customer/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
             if (fieldType === 'brand_unit') {
@@ -457,20 +452,27 @@
                 const key = keys.find(k => /SEGMENT|INDUSTRI/i.test(k));
                 return key ? normalizeSegmentName(row[key]) : '';
             }
-            if (fieldType === 'ar') {
-                const key = keys.find(k => {
-                    const cleanK = k.trim().toLowerCase().replace(/[\s_]+/g, '');
-                    return cleanK === 'ar' || cleanK.includes('overdue') || cleanK.includes('ardays') || cleanK.includes('ar30');
-                });
-                return key ? String(row[key]).trim() : '0';
-            }
             
-            // PEMBACAAN LENGKAP CONTRACT STATUS
+            // DEDIKASI MEMBACA 3 KOLOM AR MASING-MASING (KOLOM S, T, U DI GOOGLE SHEET)
+            if (fieldType === 'ar7') {
+                const key = keys.find(k => /AR\s*>\s*7|AR7/i.test(k));
+                return key ? parseNumberOnly(row[key]) : 0;
+            }
+            if (fieldType === 'ar30') {
+                const key = keys.find(k => /AR\s*>\s*30|AR30/i.test(k));
+                return key ? parseNumberOnly(row[key]) : 0;
+            }
+            if (fieldType === 'ar60' || fieldType === 'ar90') {
+                const key = keys.find(k => /AR\s*>\s*60|AR\s*>\s*90|AR60|AR90/i.test(k));
+                return key ? parseNumberOnly(row[key]) : 0;
+            }
+
+            // DEDIKASI DENGAN PRIORITAS KOLOM CONTRACT_STA (KOLOM W DI GOOGLE SHEET)
             if (fieldType === 'status_agree' || fieldType === 'contract_status') {
-                const key = keys.find(k => {
-                    const cleanKey = k.trim().toLowerCase().replace(/[\s_]+/g, '');
-                    return cleanKey === 'contractstatus' || cleanKey === 'statusagree' || cleanKey === 'status' || cleanKey === 'contractstat';
-                });
+                let key = keys.find(k => /^CONTRACT_STA$/i.test(k) || /^CONTRACT_STATUS$/i.test(k) || /CONTRACT.*STA/i.test(k));
+                if (!key) {
+                    key = keys.find(k => /STATUS_AGRE|STATUS AGREE/i.test(k));
+                }
                 return key ? String(row[key]).trim() : '';
             }
 
@@ -483,13 +485,13 @@
                 return key ? String(row[key]).trim() : '0';
             }
             if (fieldType === 'contract_date') {
-                const key = keys.find(k => /Contract Date|CONTRACT_DATE|CONTRACTDATE|TANGGAL_KONTRAK/i.test(k));
+                const key = keys.find(k => /Contract Date|CONTRACT_DATE|CONTRACTDATE|TANGGAL_KONTRAK|Tanggal Booking/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
             return '';
         }
 
-        // NORMALISASI KODE STATUS BERBAGAI VARIASI TEKS
+        // FLEKSIBEL PEMBACAAN KODE AC, CL, PT, RP DARI KOLOM CONTRACT_STA / STATUS_AGRE
         function normalizeContractStatus(rawStatus) {
             if (!rawStatus) return 'OTHER';
             const s = String(rawStatus).toUpperCase().trim();
@@ -663,7 +665,7 @@
                 yearMap[yr].count++;
                 yearMap[yr].totalAf += afNumRow;
 
-                // KALKULASI DARI NOMINAL KODE STATUS
+                // KALKULASI BERDASARKAN CONTRACT_STA / STATUS_AGRE
                 const statusCode = normalizeContractStatus(getFieldValue(row, 'contract_status'));
                 if (statusCode === 'AC') {
                     countAC++;
@@ -704,7 +706,7 @@
                 yearBreakdownContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada data tanggal</span>`;
             }
 
-            // KARTU STATUS KONTRAK (AC, CL, PT, RP)
+            // KARTU STATUS KONTRAK
             document.getElementById('kpi-status-ac').innerText = countAC;
             document.getElementById('kpi-status-ac-sub').innerText = `${totalKontrak > 0 ? ((countAC/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             document.getElementById('kpi-ac-outstanding').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumOutstandingAC);
@@ -719,7 +721,7 @@
             document.getElementById('kpi-status-rp').innerText = countRP;
             document.getElementById('kpi-status-rp-sub').innerText = `${totalKontrak > 0 ? ((countRP/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
 
-            // AR INFO (MANDIRI KATEGORI > 7, > 30, > 60)
+            // AKUMULASI DARI DEDIKASI KOLOM S, T, U
             const arBaseData = filteredData.filter(row => {
                 if (currentArFilter === 'ALL') return true;
                 return normalizeContractStatus(getFieldValue(row, 'contract_status')) === currentArFilter;
@@ -732,26 +734,28 @@
             const brandArMap = { 7: {}, 30: {}, 60: {} };
 
             arBaseData.forEach(row => {
-                const rawArStr = getFieldValue(row, 'ar');
-                const arDaysNum = parseArDaysNumber(rawArStr);
+                const val7 = getFieldValue(row, 'ar7');
+                const val30 = getFieldValue(row, 'ar30');
+                const val60 = getFieldValue(row, 'ar60');
+
                 const cName = formatEntityDisplay(getFieldValue(row, 'customer') || 'Unknown');
                 const bName = getFieldValue(row, 'brand_unit');
 
-                if (arDaysNum > 7) {
+                if (val7 >= 1) {
                     ar7Count++;
                     custArMap[7][cName] = (custArMap[7][cName] || 0) + 1;
                     if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
                         brandArMap[7][bName] = (brandArMap[7][bName] || 0) + 1;
                     }
                 }
-                if (arDaysNum > 30) {
+                if (val30 >= 1) {
                     ar30Count++;
                     custArMap[30][cName] = (custArMap[30][cName] || 0) + 1;
                     if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
                         brandArMap[30][bName] = (brandArMap[30][bName] || 0) + 1;
                     }
                 }
-                if (arDaysNum > 60) {
+                if (val60 >= 1) {
                     ar60Count++;
                     custArMap[60][cName] = (custArMap[60][cName] || 0) + 1;
                     if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
