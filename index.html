@@ -93,7 +93,6 @@
         <!-- KPI SUMMARY CARDS -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4">
             
-            <!-- 1. TOTAL KONTRAK + TOTAL CUSTOMER + PROJECT OWNER + BREAKDOWN PRODUCT & AF TAHUN -->
             <div class="lg:col-span-5 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <div class="grid grid-cols-3 gap-2 pb-3 border-b border-slate-700/60">
@@ -111,31 +110,29 @@
                         </div>
                     </div>
 
-                    <!-- RINGKASAN AF OVERALL -->
                     <div class="flex items-center justify-between mt-2.5 pb-2 border-b border-slate-700/40">
                         <span class="text-[10px] text-slate-400 uppercase font-semibold">Total AF Kontrak:</span>
                         <span id="kpi-total-af-overall" class="text-sm font-bold text-emerald-400 font-mono">Rp 0</span>
                     </div>
 
-                    <!-- REVISI A.1: BREAKDOWN PRODUCT DENGAN TOTAL AF KONTRAK -->
+                    <!-- REVISI SUB-HEADER: BREAKDOWN PRODUCT -->
                     <div class="mt-2.5 pb-2 border-b border-slate-700/60">
-                        <p class="text-[10px] text-indigo-400 uppercase font-semibold tracking-wider mb-1">Breakdown Product (Total AF):</p>
+                        <p class="text-[10px] text-indigo-400 uppercase font-semibold tracking-wider mb-1">BREAKDOWN PRODUCT:</p>
                         <div id="kpi-product-breakdown" class="space-y-1 text-xs">
                             <span class="text-slate-500 italic">Memuat data...</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- BREAKDOWN PER TAHUN -->
                 <div class="mt-2.5">
-                    <p class="text-[10px] text-emerald-400 uppercase font-semibold tracking-wider mb-1">Breakdown AF per Tahun:</p>
+                    <p class="text-[10px] text-emerald-400 uppercase font-semibold tracking-wider mb-1">BREAKDOWN AF PER TAHUN:</p>
                     <div id="kpi-year-breakdown" class="space-y-1 text-xs">
                         <span class="text-slate-500 italic">Memuat data...</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. AR INFO -->
+            <!-- AR INFO -->
             <div class="lg:col-span-7 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-3">
@@ -187,10 +184,8 @@
             </div>
         </section>
 
-        <!-- REVISI A.2: KARTU STATUS KONTRAK (AC, CL, PT, RP) DENGAN RINCIAN PRODUCT (AF & OUTSTANDING) -->
+        <!-- KARTU STATUS KONTRAK -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            <!-- AC (ACTIVE) -->
             <div class="bg-slate-800/70 border border-emerald-500/30 rounded-2xl p-4 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between">
@@ -216,16 +211,14 @@
                     </div>
                 </div>
 
-                <!-- Breakdown Product untuk AC -->
                 <div class="mt-3 pt-2 border-t border-slate-700/60">
-                    <p class="text-[9px] text-emerald-400 uppercase font-semibold mb-1">Rincian Product (AF / Outstanding):</p>
+                    <p class="text-[9px] text-emerald-400 uppercase font-semibold mb-1">Rincian Product:</p>
                     <div id="ac-product-breakdown" class="space-y-1 text-[10px]">
                         <span class="text-slate-500 italic">Memuat...</span>
                     </div>
                 </div>
             </div>
 
-            <!-- CL (CLOSE) -->
             <div class="bg-slate-800/70 border border-slate-600/30 rounded-2xl p-4 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between">
@@ -247,16 +240,14 @@
                     </div>
                 </div>
 
-                <!-- Breakdown Product untuk CL -->
                 <div class="mt-3 pt-2 border-t border-slate-700/60">
-                    <p class="text-[9px] text-slate-400 uppercase font-semibold mb-1">Rincian Product (AF / Outstanding):</p>
+                    <p class="text-[9px] text-slate-400 uppercase font-semibold mb-1">Rincian Product:</p>
                     <div id="cl-product-breakdown" class="space-y-1 text-[10px]">
                         <span class="text-slate-500 italic">Memuat...</span>
                     </div>
                 </div>
             </div>
 
-            <!-- PT (PAID OFF) -->
             <div class="bg-slate-800/70 border border-blue-500/30 rounded-2xl p-4 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between">
@@ -278,16 +269,14 @@
                     </div>
                 </div>
 
-                <!-- Breakdown Product untuk PT -->
                 <div class="mt-3 pt-2 border-t border-slate-700/60">
-                    <p class="text-[9px] text-blue-400 uppercase font-semibold mb-1">Rincian Product (AF / Outstanding):</p>
+                    <p class="text-[9px] text-blue-400 uppercase font-semibold mb-1">Rincian Product:</p>
                     <div id="pt-product-breakdown" class="space-y-1 text-[10px]">
                         <span class="text-slate-500 italic">Memuat...</span>
                     </div>
                 </div>
             </div>
 
-            <!-- RP (REPO) -->
             <div class="bg-slate-800/70 border border-rose-500/30 rounded-2xl p-4 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between">
@@ -313,9 +302,8 @@
                     </div>
                 </div>
 
-                <!-- Breakdown Product untuk RP -->
                 <div class="mt-3 pt-2 border-t border-slate-700/60">
-                    <p class="text-[9px] text-rose-400 uppercase font-semibold mb-1">Rincian Product (AF / Outstanding):</p>
+                    <p class="text-[9px] text-rose-400 uppercase font-semibold mb-1">Rincian Product:</p>
                     <div id="rp-product-breakdown" class="space-y-1 text-[10px]">
                         <span class="text-slate-500 italic">Memuat...</span>
                     </div>
@@ -344,7 +332,7 @@
             </div>
         </section>
 
-        <!-- SEBARAN PROVINSI (TOP 10) & DISTRIBUSI SEGMENT -->
+        <!-- SEBARAN PROVINSI & DISTRIBUSI SEGMENT -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 flex flex-col">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
@@ -378,7 +366,7 @@
             </div>
         </section>
 
-        <!-- REVISI B.1 & B.2: DATABASE TABLE DENGAN HEADER BRAND (E2) DAN PRODUCT (G2) -->
+        <!-- DATABASE TABLE -->
         <section class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-5 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <h2 class="text-base font-semibold text-white flex items-center gap-2">
@@ -400,8 +388,8 @@
                             <th class="px-3 py-3">NO KONTRAK</th>
                             <th class="px-3 py-3">NAMA CUSTOMER</th>
                             <th class="px-3 py-3 text-center">TOTAL KONTRAK</th>
-                            <th class="px-3 py-3">BRAND</th> <!-- B.1 Bersumber dari Kolom E Google Sheet -->
-                            <th class="px-3 py-3">PRODUCT</th> <!-- B.2 Dirubah dari PRODUCT / BTM menjadi PRODUCT, bersumber dari Kolom G Google Sheet -->
+                            <th class="px-3 py-3">BRAND</th>
+                            <th class="px-3 py-3">PRODUCT</th>
                             <th class="px-3 py-3">CONTRACT STATUS</th>
                             <th class="px-3 py-3">PROJECT OWNER</th>
                             <th class="px-3 py-3">PROVINSI / LOKASI</th>
@@ -433,7 +421,6 @@
             fetchGoogleSheetData();
         });
 
-        // PEMETAAN LOKASI KE PROVINSI
         function mapCityToProvince(cityStr) {
             if (!cityStr) return 'Lainnya';
             const str = String(cityStr).trim().toLowerCase();
@@ -544,7 +531,7 @@
             });
         }
 
-        // FUNGSI MEMBACA KOLOM LENGKAP TERMASUK PERSYARATAN REVISI
+        // PERBAIKAN PEMBACAAN FIELD (Membaca Kolom G 'Product' Secara Tepat)
         function getFieldValue(row, fieldType) {
             if (!row) return '';
             const keys = Object.keys(row);
@@ -558,15 +545,14 @@
                 return key ? String(row[key]).trim() : '';
             }
             
-            // REVISI B.1: Header Brand Mengambil Data Kolom E2 (BRAND)
             if (fieldType === 'brand_unit') {
                 const key = keys.find(k => /^BRAND$/i.test(k) || /BRAND_UNIT|BRAND UNIT|^MERK$/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
 
-            // REVISI B.2: Header Product Mengambil Data Kolom G2 (BTM / PRODUCT)
+            // PERBAIKAN KHUSUS PRODUCT (Membaca Kolom G 'Product' terlebih dahulu)
             if (fieldType === 'product') {
-                const key = keys.find(k => /^BTM$/i.test(k) || /^PRODUCT$/i.test(k) || /PRODUCT|PRODUK|BARANG/i.test(k));
+                const key = keys.find(k => /^Product$/i.test(k.trim())) || keys.find(k => /^BTM$/i.test(k.trim()));
                 return key ? String(row[key]).trim() : '';
             }
 
@@ -776,7 +762,7 @@
 
         function renderKPIs() {
             const yearMap = {};
-            const productAfMap = {}; // Untuk A.1 Breakdown Product Total AF
+            const productAfMap = {};
             let grandTotalAfSum = 0;
             
             const uniqueCustomers = new Set();
@@ -787,7 +773,6 @@
             let countPT = 0, sumAfPT = 0, sumOutstandingPT = 0;
             let countRP = 0, sumAfRP = 0, sumOutstandingRP = 0;
 
-            // Struktur penampung rincian per Product per Status (A.2)
             const statusProductBreakdown = {
                 AC: {}, CL: {}, PT: {}, RP: {}
             };
@@ -809,17 +794,14 @@
 
                 grandTotalAfSum += afNumRow;
 
-                // Akumulasi AF per Product (A.1)
                 productAfMap[prodName] = (productAfMap[prodName] || 0) + afNumRow;
 
-                // Breakdown AF per Tahun
                 if (!yearMap[yr]) {
                     yearMap[yr] = { count: 0, totalAf: 0 };
                 }
                 yearMap[yr].count++;
                 yearMap[yr].totalAf += afNumRow;
 
-                // Status Kontrak
                 const statusCode = normalizeContractStatus(getFieldValue(row, 'contract_status'));
                 
                 if (statusProductBreakdown[statusCode]) {
@@ -858,7 +840,6 @@
             const fmtOverallAf = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(grandTotalAfSum);
             document.getElementById('kpi-total-af-overall').innerText = fmtOverallAf;
 
-            // RENDER A.1: BREAKDOWN SETIAP PRODUCT BESERTA TOTAL AF KONTRAK
             const productContainer = document.getElementById('kpi-product-breakdown');
             const sortedProducts = Object.entries(productAfMap).sort((a,b) => b[1] - a[1]);
             if (sortedProducts.length > 0) {
@@ -875,7 +856,6 @@
                 productContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada data product</span>`;
             }
 
-            // BREAKDOWN TAHUN
             const sortedYears = Object.keys(yearMap).sort();
             const yearBreakdownContainer = document.getElementById('kpi-year-breakdown');
             if (sortedYears.length > 0) {
@@ -892,9 +872,7 @@
                 yearBreakdownContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada data tanggal</span>`;
             }
 
-            // RENDER A.2: KARTU METRIK STATUS KONTRAK + PRODUCT BREAKDOWN
-            
-            // 1. AC (ACTIVE)
+            // KARTU STATUS KONTRAK
             document.getElementById('kpi-status-ac').innerText = countAC;
             document.getElementById('kpi-status-ac-sub').innerText = `${totalKontrak > 0 ? ((countAC/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             document.getElementById('kpi-ac-af').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumAfAC);
@@ -902,19 +880,16 @@
             document.getElementById('kpi-ac-outstanding').innerHTML = `${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumOutstandingAC)} (<span id="kpi-ac-os-pct">${acOsPct}%</span>)`;
             renderStatusProductBreakdown('ac-product-breakdown', statusProductBreakdown.AC, 'emerald');
 
-            // 2. CL (CLOSE)
             document.getElementById('kpi-status-cl').innerText = countCL;
             document.getElementById('kpi-status-cl-sub').innerText = `${totalKontrak > 0 ? ((countCL/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             document.getElementById('kpi-cl-af').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumAfCL);
             renderStatusProductBreakdown('cl-product-breakdown', statusProductBreakdown.CL, 'slate');
 
-            // 3. PT (PAID OFF)
             document.getElementById('kpi-status-pt').innerText = countPT;
             document.getElementById('kpi-status-pt-sub').innerText = `${totalKontrak > 0 ? ((countPT/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             document.getElementById('kpi-pt-af').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumAfPT);
             renderStatusProductBreakdown('pt-product-breakdown', statusProductBreakdown.PT, 'blue');
 
-            // 4. RP (REPO)
             document.getElementById('kpi-status-rp').innerText = countRP;
             document.getElementById('kpi-status-rp-sub').innerText = `${totalKontrak > 0 ? ((countRP/totalKontrak)*100).toFixed(1) : 0}% dari Total Kontrak`;
             document.getElementById('kpi-rp-af').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumAfRP);
@@ -974,7 +949,6 @@
             document.getElementById('ar60-val').innerText = `${ar60Count} Kr`;
             document.getElementById('ar60-pct').innerText = `${totalArBase > 0 ? ((ar60Count/totalArBase)*100).toFixed(1) : 0}%`;
 
-            // Top 3 Customer
             const top3Cust7 = Object.entries(custArMap[7]).sort((a,b)=>b[1]-a[1]).slice(0,3);
             const top3Cust30 = Object.entries(custArMap[30]).sort((a,b)=>b[1]-a[1]).slice(0,3);
             const top3Cust60 = Object.entries(custArMap[60]).sort((a,b)=>b[1]-a[1]).slice(0,3);
@@ -997,7 +971,6 @@
                 </div>
             `;
 
-            // Top 3 Brand Unit
             const top3Brand7 = Object.entries(brandArMap[7]).sort((a,b)=>b[1]-a[1]).slice(0,3);
             const top3Brand30 = Object.entries(brandArMap[30]).sort((a,b)=>b[1]-a[1]).slice(0,3);
             const top3Brand60 = Object.entries(brandArMap[60]).sort((a,b)=>b[1]-a[1]).slice(0,3);
@@ -1021,7 +994,6 @@
             `;
         }
 
-        // FUNGSI HELPER UNTUK MENCETAK BREAKDOWN PRODUCT DI MASING-MASING KARTU STATUS
         function renderStatusProductBreakdown(containerId, prodDataMap, themeColor) {
             const container = document.getElementById(containerId);
             const sorted = Object.entries(prodDataMap || {}).sort((a,b) => b[1].af - a[1].af);
