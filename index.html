@@ -948,7 +948,12 @@
                 const bName = getFieldValue(row, 'brand_unit');
                 const statusCode = normalizeContractStatus(getFieldValue(row, 'contract_status'));
 
-                // Hitung Arrears
+                const rawAfRow = getFieldValue(row, 'af_kontrak');
+                const afNumRow = parseCurrencyNumber(rawAfRow);
+                const rawOsRow = getFieldValue(row, 'outstanding');
+                const osNumRow = parseCurrencyNumber(rawOsRow);
+
+                // Hitung Tunggakan AR
                 if (val7 >= 1) {
                     ar7Count++;
                     custArMap[7][cName] = (custArMap[7][cName] || 0) + 1;
@@ -971,9 +976,14 @@
                     }
                 }
 
-                // Hitung Good Payers (Unit/Kontrak Tanpa Tunggakan AR > 7)
+                // Hitung Good Payers (Lancar / Zero Overdue AR < 7)
                 if ((statusCode === 'AC' || statusCode === 'PT') && val7 === 0) {
-                    goodPayerMap[cName] = (goodPayerMap[cName] || 0) + 1;
+                    if (!goodPayerMap[cName]) {
+                        goodPayerMap[cName] = { count: 0, totalAf: 0, totalOs: 0 };
+                    }
+                    goodPayerMap[cName].count += 1;
+                    goodPayerMap[cName].totalAf += afNumRow;
+                    goodPayerMap[cName].totalOs += osNumRow;
                 }
             });
 
@@ -1014,19 +1024,38 @@
                     </div>
                 `;
             } else {
-                custTitle.innerText = "Top 3 Good Payers (Zero Overdue AR):";
+                custTitle.innerText = "Top 3 Good Payers (Lancar / Zero Overdue AR):";
                 custTitle.className = "text-xs text-emerald-400 uppercase font-bold tracking-wider mb-1";
 
-                const top3Good = Object.entries(goodPayerMap).sort((a,b)=>b[1]-a[1]).slice(0,3);
-                
-                custContainer.innerHTML = `
-                    <div class="bg-emerald-950/30 p-2 rounded-lg border border-emerald-500/20 space-y-1.5">
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="text-emerald-300 font-bold"><i class="fa-solid fa-star text-amber-400"></i> Top Performers:</span>
-                            <span class="text-emerald-400 font-mono font-bold">${top3Good.map(x => `${x[0]} (${x[1]} unit clean)`).join(' • ') || 'Tidak ada data'}</span>
+                const top3Good = Object.entries(goodPayerMap)
+                    .sort((a,b) => b[1].count - a[1].count)
+                    .slice(0,3);
+
+                if (top3Good.length === 0) {
+                    custContainer.innerHTML = `<span class="text-slate-500 italic">Tidak ada data customer lancar</span>`;
+                } else {
+                    custContainer.innerHTML = `
+                        <div class="space-y-1.5">
+                            ${top3Good.map(([cName, dataObj], idx) => {
+                                const fmtAf = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(dataObj.totalAf);
+                                const fmtOs = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(dataObj.totalOs);
+                                return `
+                                    <div class="bg-emerald-950/40 p-2 rounded-lg border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-[10px] font-bold font-mono">#${idx + 1}</span>
+                                            <span class="text-slate-100 font-bold text-xs truncate max-w-[200px]" title="${escapeHtml(cName)}">${escapeHtml(cName)}</span>
+                                            <span class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 rounded text-[10px] font-mono font-semibold border border-emerald-500/30">${dataObj.count} Unit Lancar</span>
+                                        </div>
+                                        <div class="flex items-center gap-3 text-[11px] font-mono text-slate-300 self-end sm:self-center">
+                                            <span>AF: <strong class="text-emerald-400">${fmtAf}</strong></span>
+                                            <span>OS: <strong class="text-cyan-400">${fmtOs}</strong></span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }
 
             const top3Brand7 = Object.entries(brandArMap[7]).sort((a,b)=>b[1]-a[1]).slice(0,3);
