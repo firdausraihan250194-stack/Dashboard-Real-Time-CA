@@ -447,12 +447,15 @@
             return cityStr.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
         }
 
+        // PERBAIKAN PARSER ANGKA RUPIAH PRESISI
         function parseCurrencyNumber(valStr) {
             if (!valStr || valStr === '-' || valStr === 'null' || valStr === 'undefined') return 0;
             let str = String(valStr).replace(/Rp|RP|\s/g, '').trim();
             if (!str) return 0;
             
-            if (str.includes('.') && str.includes(',')) {
+            if (str.includes('.') && !str.includes(',')) {
+                str = str.replace(/\./g, '');
+            } else if (str.includes('.') && str.includes(',')) {
                 if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
                     str = str.replace(/\./g, '').replace(',', '.');
                 } else {
@@ -531,7 +534,7 @@
             });
         }
 
-        // PERBAIKAN PEMBACAAN FIELD (Membaca Kolom G 'Product' Secara Tepat)
+        // PERBAIKAN KHUSUS MEMBACA KOLOM Z ('Brand') DENGAN FILTER SAKLAK
         function getFieldValue(row, fieldType) {
             if (!row) return '';
             const keys = Object.keys(row);
@@ -545,12 +548,21 @@
                 return key ? String(row[key]).trim() : '';
             }
             
+            // MEMBACA DARI KOLOM Z (BRAND)
             if (fieldType === 'brand_unit') {
-                const key = keys.find(k => /^BRAND$/i.test(k) || /BRAND_UNIT|BRAND UNIT|^MERK$/i.test(k));
-                return key ? String(row[key]).trim() : '';
+                const key = keys.find(k => /^BRAND$/i.test(k.trim())) || 
+                            keys.find(k => /BRAND_UNIT|BRAND UNIT|^MERK$/i.test(k.trim()));
+                let val = key ? String(row[key]).trim() : '';
+                
+                // FILTER PENYARING TEKS PRODUK PEMBIAYAAN
+                const isFacility = /^(ABF|FAC|FACTORING|FMU|GENERAL|FINANCING|AR FINANCING|-|NULL|UNDEFINED)$/i;
+                if (isFacility.test(val)) {
+                    return '-';
+                }
+                return val;
             }
 
-            // PERBAIKAN KHUSUS PRODUCT (Membaca Kolom G 'Product' terlebih dahulu)
+            // MEMBACA KOLOM G (PRODUCT)
             if (fieldType === 'product') {
                 const key = keys.find(k => /^Product$/i.test(k.trim())) || keys.find(k => /^BTM$/i.test(k.trim()));
                 return key ? String(row[key]).trim() : '';
@@ -920,21 +932,21 @@
                 if (val7 >= 1) {
                     ar7Count++;
                     custArMap[7][cName] = (custArMap[7][cName] || 0) + 1;
-                    if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
+                    if (bName && bName !== '-') {
                         brandArMap[7][bName] = (brandArMap[7][bName] || 0) + 1;
                     }
                 }
                 if (val30 >= 1) {
                     ar30Count++;
                     custArMap[30][cName] = (custArMap[30][cName] || 0) + 1;
-                    if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
+                    if (bName && bName !== '-') {
                         brandArMap[30][bName] = (brandArMap[30][bName] || 0) + 1;
                     }
                 }
                 if (val60 >= 1) {
                     ar60Count++;
                     custArMap[60][cName] = (custArMap[60][cName] || 0) + 1;
-                    if (bName && bName !== '-' && !/ABF|FACTORING|FMU|GENERAL|FINANCING/i.test(bName)) {
+                    if (bName && bName !== '-') {
                         brandArMap[60][bName] = (brandArMap[60][bName] || 0) + 1;
                     }
                 }
