@@ -518,7 +518,7 @@
             });
         }
 
-        // PEMBACAAN FIELD DENGAN FALLBACK PINTAR UNTUK BRAND
+        // PEMBACAAN FIELD DENGAN FALLBACK PINTAR UNTUK BRAND & KOLOM BARU MAX_OVD / TOT_OVD
         function getFieldValue(row, fieldType) {
             if (!row) return '';
             const keys = Object.keys(row);
@@ -593,6 +593,16 @@
             }
             if (fieldType === 'ar60' || fieldType === 'ar90') {
                 const key = keys.find(k => /AR\s*>\s*60|AR\s*>\s*90|AR60|AR90/i.test(k));
+                return key ? parseNumberOnly(row[key]) : 0;
+            }
+
+            // PEMBACAAN BARU: KOLOM AB (MAX_OVD) & AC (TOT_OVD)
+            if (fieldType === 'max_ovd') {
+                const key = keys.find(k => /^MAX_OVD$/i.test(k.trim())) || keys.find(k => /MAX.*OVD/i.test(k.trim()));
+                return key ? parseNumberOnly(row[key]) : 0;
+            }
+            if (fieldType === 'tot_ovd') {
+                const key = keys.find(k => /^TOT_OVD$/i.test(k.trim())) || keys.find(k => /TOT.*OVD/i.test(k.trim()));
                 return key ? parseNumberOnly(row[key]) : 0;
             }
 
@@ -944,6 +954,9 @@
                 const val30 = getFieldValue(row, 'ar30');
                 const val60 = getFieldValue(row, 'ar60');
 
+                const maxOvd = getFieldValue(row, 'max_ovd');
+                const totOvd = getFieldValue(row, 'tot_ovd');
+
                 const cName = formatEntityDisplay(getFieldValue(row, 'customer') || 'Unknown');
                 const bName = getFieldValue(row, 'brand_unit');
                 const statusCode = normalizeContractStatus(getFieldValue(row, 'contract_status'));
@@ -976,8 +989,8 @@
                     }
                 }
 
-                // Hitung Good Payers (Lancar / Zero Overdue AR < 7)
-                if ((statusCode === 'AC' || statusCode === 'PT') && val7 === 0) {
+                // Hitung Good Payers berdasarkan KRITERIA BARU (MAX_OVD < 7 DAN TOT_OVD < 30)
+                if ((statusCode === 'AC' || statusCode === 'PT') && maxOvd < 7 && totOvd < 30) {
                     if (!goodPayerMap[cName]) {
                         goodPayerMap[cName] = { count: 0, totalAf: 0, totalOs: 0 };
                     }
@@ -1024,7 +1037,7 @@
                     </div>
                 `;
             } else {
-                custTitle.innerText = "Top 3 Good Payers (Lancar / Zero Overdue AR):";
+                custTitle.innerText = "Top 3 Good Payers (Max OVD < 7 Hari & Tot OVD < 30 Hari):";
                 custTitle.className = "text-xs text-emerald-400 uppercase font-bold tracking-wider mb-1";
 
                 const top3Good = Object.entries(goodPayerMap)
