@@ -115,7 +115,6 @@
                         <span id="kpi-total-af-overall" class="text-sm font-bold text-emerald-400 font-mono">Rp 0</span>
                     </div>
 
-                    <!-- REVISI SUB-HEADER: BREAKDOWN PRODUCT -->
                     <div class="mt-2.5 pb-2 border-b border-slate-700/60">
                         <p class="text-[10px] text-indigo-400 uppercase font-semibold tracking-wider mb-1">BREAKDOWN PRODUCT:</p>
                         <div id="kpi-product-breakdown" class="space-y-1 text-xs">
@@ -421,33 +420,7 @@
             fetchGoogleSheetData();
         });
 
-        function mapCityToProvince(cityStr) {
-            if (!cityStr) return 'Lainnya';
-            const str = String(cityStr).trim().toLowerCase();
-
-            if (str.includes('solok') || str.includes('padang') || str.includes('sumbar')) return 'Sumatera Barat';
-            if (str.includes('jakarta')) return 'DKI Jakarta';
-            if (str.includes('bogor') || str.includes('bandung') || str.includes('bekasi') || str.includes('depok') || str.includes('lahat') || str.includes('cirebon') || str.includes('sukabumi')) return 'Jawa Barat';
-            if (str.includes('kutai') || str.includes('samarinda') || str.includes('balikpapan') || str.includes('paser') || str.includes('berau') || str.includes('kaltim')) return 'Kalimantan Timur';
-            if (str.includes('morowali') || str.includes('palu') || str.includes('sulteng')) return 'Sulawesi Tengah';
-            if (str.includes('halmahera') || str.includes('ternate') || str.includes('malut')) return 'Maluku Utara';
-            if (str.includes('jambi')) return 'Jambi';
-            if (str.includes('konawe') || str.includes('kendari') || str.includes('kolaka') || str.includes('sultra')) return 'Sulawesi Tenggara';
-            if (str.includes('surabaya') || str.includes('banyuwangi') || str.includes('gresik') || str.includes('jatim')) return 'Jawa Timur';
-            if (str.includes('semarang') || str.includes('solo') || str.includes('jateng')) return 'Jawa Tengah';
-            if (str.includes('palembang') || str.includes('sumsel')) return 'Sumatera Selatan';
-            if (str.includes('medan') || str.includes('sumut')) return 'Sumatera Utara';
-            if (str.includes('pekanbaru') || str.includes('riau')) return 'Riau';
-            if (str.includes('banjarmasin') || str.includes('kalsel')) return 'Kalimantan Selatan';
-            if (str.includes('pontianak') || str.includes('kalbar')) return 'Kalimantan Barat';
-            if (str.includes('palangkaraya') || str.includes('kalteng')) return 'Kalimantan Tengah';
-            if (str.includes('makassar') || str.includes('sulsel')) return 'Sulawesi Selatan';
-            if (str.includes('banten') || str.includes('tangerang') || str.includes('cilegon')) return 'Banten';
-
-            return cityStr.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-        }
-
-        // PERBAIKAN PARSER ANGKA RUPIAH PRESISI
+        // PARSER ANGKA RUPIAH PRESISI
         function parseCurrencyNumber(valStr) {
             if (!valStr || valStr === '-' || valStr === 'null' || valStr === 'undefined') return 0;
             let str = String(valStr).replace(/Rp|RP|\s/g, '').trim();
@@ -534,7 +507,7 @@
             });
         }
 
-        // PERBAIKAN KHUSUS MEMBACA KOLOM Z ('Brand') DENGAN FILTER SAKLAK
+        // PEMBACAAN FIELD DIPERBAIKI (BRAND = KOLOM Z, LOKASI = KOLOM M)
         function getFieldValue(row, fieldType) {
             if (!row) return '';
             const keys = Object.keys(row);
@@ -548,21 +521,19 @@
                 return key ? String(row[key]).trim() : '';
             }
             
-            // MEMBACA DARI KOLOM Z (BRAND)
+            // PEMBACAAN DARI KOLOM Z (BRAND)
             if (fieldType === 'brand_unit') {
                 const key = keys.find(k => /^BRAND$/i.test(k.trim())) || 
                             keys.find(k => /BRAND_UNIT|BRAND UNIT|^MERK$/i.test(k.trim()));
                 let val = key ? String(row[key]).trim() : '';
                 
-                // FILTER PENYARING TEKS PRODUK PEMBIAYAAN
-                const isFacility = /^(ABF|FAC|FACTORING|FMU|GENERAL|FINANCING|AR FINANCING|-|NULL|UNDEFINED)$/i;
-                if (isFacility.test(val)) {
+                if (!val || val === '-' || val === 'null' || val === 'undefined') {
                     return '-';
                 }
                 return val;
             }
 
-            // MEMBACA KOLOM G (PRODUCT)
+            // PEMBACAAN DARI KOLOM G (PRODUCT)
             if (fieldType === 'product') {
                 const key = keys.find(k => /^Product$/i.test(k.trim())) || keys.find(k => /^BTM$/i.test(k.trim()));
                 return key ? String(row[key]).trim() : '';
@@ -572,10 +543,14 @@
                 const key = keys.find(k => /PROJECT OWNER|PROJECT_OWNER|OWNER/i.test(k));
                 return key ? String(row[key]).trim() : '';
             }
+
+            // PEMBACAAN MURNI DARI KOLOM M (Lokasi Project (Provinsi))
             if (fieldType === 'lokasi') {
-                const key = keys.find(k => /LOKASI|KOTA|WILAYAH|PROVINSI/i.test(k));
-                return key ? mapCityToProvince(row[key]) : '';
+                const key = keys.find(k => /Lokasi Project \(Provinsi\)|PROVINSI/i.test(k.trim())) ||
+                            keys.find(k => /LOKASI|KOTA|WILAYAH/i.test(k.trim()));
+                return key ? String(row[key]).trim() : 'Lainnya';
             }
+
             if (fieldType === 'segment') {
                 const key = keys.find(k => /SEGMENT|INDUSTRI/i.test(k));
                 return key ? normalizeSegmentName(row[key]) : '';
