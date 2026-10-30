@@ -131,19 +131,29 @@
                 </div>
             </div>
 
-            <!-- AR INFO -->
+            <!-- AR INFO DENGAN TOGGLE GOOD PAYERS -->
             <div class="lg:col-span-7 bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between">
                 <div>
-                    <div class="flex items-center justify-between mb-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                         <p class="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation"></i> AR INFO
+                            <i class="fa-solid fa-triangle-exclamation"></i> AR INFO &amp; PERFORMANCE
                         </p>
-                        <div class="flex items-center bg-slate-900 p-1 rounded-lg border border-slate-700 text-xs">
-                            <button onclick="setArStatusFilter('ALL')" id="ar-btn-ALL" class="px-2.5 py-0.5 rounded font-medium bg-indigo-600 text-white">ALL</button>
-                            <button onclick="setArStatusFilter('AC')" id="ar-btn-AC" class="px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white">AC</button>
-                            <button onclick="setArStatusFilter('CL')" id="ar-btn-CL" class="px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white">CL</button>
-                            <button onclick="setArStatusFilter('PT')" id="ar-btn-PT" class="px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white">PT</button>
-                            <button onclick="setArStatusFilter('RP')" id="ar-btn-RP" class="px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white">RP</button>
+                        
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <!-- TOGGLE MODE VIEW: TOP AR vs TOP GOOD PAYERS -->
+                            <div class="flex items-center bg-slate-900 p-0.5 rounded-lg border border-indigo-500/40 text-[11px]">
+                                <button onclick="setCustomerMode('AR')" id="mode-btn-AR" class="px-2 py-0.5 rounded font-bold bg-indigo-600 text-white transition">Top AR</button>
+                                <button onclick="setCustomerMode('GOOD')" id="mode-btn-GOOD" class="px-2 py-0.5 rounded font-bold text-slate-400 hover:text-emerald-400 transition">Top Good Payers</button>
+                            </div>
+
+                            <!-- FILTER STATUS KONTRAK -->
+                            <div class="flex items-center bg-slate-900 p-0.5 rounded-lg border border-slate-700 text-xs">
+                                <button onclick="setArStatusFilter('ALL')" id="ar-btn-ALL" class="px-2 py-0.5 rounded font-medium bg-slate-700 text-white">ALL</button>
+                                <button onclick="setArStatusFilter('AC')" id="ar-btn-AC" class="px-2 py-0.5 rounded font-medium text-slate-400 hover:text-white">AC</button>
+                                <button onclick="setArStatusFilter('CL')" id="ar-btn-CL" class="px-2 py-0.5 rounded font-medium text-slate-400 hover:text-white">CL</button>
+                                <button onclick="setArStatusFilter('PT')" id="ar-btn-PT" class="px-2 py-0.5 rounded font-medium text-slate-400 hover:text-white">PT</button>
+                                <button onclick="setArStatusFilter('RP')" id="ar-btn-RP" class="px-2 py-0.5 rounded font-medium text-slate-400 hover:text-white">RP</button>
+                            </div>
                         </div>
                     </div>
 
@@ -168,7 +178,7 @@
 
                 <div class="mt-3 space-y-2.5 text-xs">
                     <div>
-                        <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Top 3 Customer (AR &gt; 7 / &gt; 30 / &gt; 60):</p>
+                        <p id="ar-top3-customer-title" class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Top 3 Customer (AR &gt; 7 / &gt; 30 / &gt; 60):</p>
                         <div id="ar-top3-customer" class="space-y-1 text-slate-200">
                             <span class="text-slate-500 italic">Memuat data...</span>
                         </div>
@@ -410,6 +420,7 @@
         let filteredData = [];
         let currentArFilter = 'ALL';
         let currentProvFilter = 'ALL';
+        let customerViewMode = 'AR'; // 'AR' atau 'GOOD'
 
         let chartCustomer = null;
         let chartOwner = null;
@@ -507,7 +518,7 @@
             });
         }
 
-        // PEMBACAAN FIELD DENGAN FALLBACK PINTAR UNTUK BRAND (Mencegah Angka Kosong)
+        // PEMBACAAN FIELD DENGAN FALLBACK PINTAR UNTUK BRAND
         function getFieldValue(row, fieldType) {
             if (!row) return '';
             const keys = Object.keys(row);
@@ -521,7 +532,7 @@
                 return key ? String(row[key]).trim() : '';
             }
             
-            // LOGIKA PINTAR PEMBACAAN BRAND UNIT
+            // BRAND UNIT FALLBACK LOGIC
             if (fieldType === 'brand_unit') {
                 let key = keys.find(k => /^BRAND$/i.test(k.trim())) || 
                           keys.find(k => /BRAND_UNIT|BRAND UNIT|^MERK$/i.test(k.trim()));
@@ -529,14 +540,12 @@
                 let val = key ? String(row[key]).trim() : '';
                 const isFacility = /^(ABF|FAC|FACTORING|FMU|GENERAL|FINANCING|AR FINANCING|-|NULL|UNDEFINED)$/i;
 
-                // jika Kolom Brand kosong / terisi jenis pembiayaan -> FALLBACK ke BTM (Kolom E)
                 if (!val || isFacility.test(val)) {
                     const btmKey = keys.find(k => /^BTM$/i.test(k.trim())) || 
                                    keys.find(k => /NAMA_UNIT|DESKRIPSI_UNIT|UNIT/i.test(k.trim()));
                     val = btmKey ? String(row[btmKey]).trim() : '';
                 }
 
-                // Ekstrak nama merk utama dari deskripsi BTM (misal: "ISUZU TRUCK..." -> "ISUZU")
                 if (val && !isFacility.test(val)) {
                     const brandMatch = val.match(/^(ISUZU|HINO|MITSUBISHI|KOBELCO|XCMG|JCB|SANY|CAT|CATERPILLAR|KOMATSU|UD TRUCKS|UD|SHACMAN|VOLVO|DAIHATSU|TOYOTA|SANWARD|HELI|LIUGONG|ZOOMLION|MERCEDES|MERCY|FAW|ZOMLION)/i);
                     if (brandMatch) {
@@ -553,7 +562,6 @@
                 return '-';
             }
 
-            // PEMBACAAN DARI KOLOM G (PRODUCT)
             if (fieldType === 'product') {
                 const key = keys.find(k => /^Product$/i.test(k.trim())) || keys.find(k => /^BTM$/i.test(k.trim()));
                 return key ? String(row[key]).trim() : '';
@@ -564,7 +572,6 @@
                 return key ? String(row[key]).trim() : '';
             }
 
-            // PEMBACAAN MURNI DARI KOLOM M (Lokasi Project (Provinsi))
             if (fieldType === 'lokasi') {
                 const key = keys.find(k => /Lokasi Project \(Provinsi\)|PROVINSI/i.test(k.trim())) ||
                             keys.find(k => /LOKASI|KOTA|WILAYAH/i.test(k.trim()));
@@ -746,11 +753,26 @@
             ['ALL', 'AC', 'CL', 'PT', 'RP'].forEach(s => {
                 const btn = document.getElementById(`ar-btn-${s}`);
                 if (s === status) {
-                    btn.className = 'px-2.5 py-0.5 rounded font-medium bg-indigo-600 text-white';
+                    btn.className = 'px-2 py-0.5 rounded font-medium bg-indigo-600 text-white';
                 } else {
-                    btn.className = 'px-2.5 py-0.5 rounded font-medium text-slate-400 hover:text-white';
+                    btn.className = 'px-2 py-0.5 rounded font-medium text-slate-400 hover:text-white';
                 }
             });
+            renderKPIs();
+        }
+
+        function setCustomerMode(mode) {
+            customerViewMode = mode;
+            const btnAr = document.getElementById('mode-btn-AR');
+            const btnGood = document.getElementById('mode-btn-GOOD');
+
+            if (mode === 'AR') {
+                btnAr.className = 'px-2 py-0.5 rounded font-bold bg-indigo-600 text-white transition';
+                btnGood.className = 'px-2 py-0.5 rounded font-bold text-slate-400 hover:text-emerald-400 transition';
+            } else {
+                btnGood.className = 'px-2 py-0.5 rounded font-bold bg-emerald-600 text-white transition';
+                btnAr.className = 'px-2 py-0.5 rounded font-bold text-slate-400 hover:text-indigo-400 transition';
+            }
             renderKPIs();
         }
 
@@ -904,7 +926,7 @@
             document.getElementById('kpi-rp-outstanding').innerHTML = `${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(sumOutstandingRP)} (<span id="kpi-rp-os-pct">${rpOsPct}%</span>)`;
             renderStatusProductBreakdown('rp-product-breakdown', statusProductBreakdown.RP, 'rose');
 
-            // AR INFO (FILTERING STATUS)
+            // AR INFO & TOP GOOD PAYERS LOGIC
             const arBaseData = filteredData.filter(row => {
                 if (currentArFilter === 'ALL') return true;
                 return normalizeContractStatus(getFieldValue(row, 'contract_status')) === currentArFilter;
@@ -915,6 +937,7 @@
 
             const custArMap = { 7: {}, 30: {}, 60: {} };
             const brandArMap = { 7: {}, 30: {}, 60: {} };
+            const goodPayerMap = {};
 
             arBaseData.forEach(row => {
                 const val7 = getFieldValue(row, 'ar7');
@@ -923,7 +946,9 @@
 
                 const cName = formatEntityDisplay(getFieldValue(row, 'customer') || 'Unknown');
                 const bName = getFieldValue(row, 'brand_unit');
+                const statusCode = normalizeContractStatus(getFieldValue(row, 'contract_status'));
 
+                // Hitung Arrears
                 if (val7 >= 1) {
                     ar7Count++;
                     custArMap[7][cName] = (custArMap[7][cName] || 0) + 1;
@@ -945,6 +970,11 @@
                         brandArMap[60][bName] = (brandArMap[60][bName] || 0) + 1;
                     }
                 }
+
+                // Hitung Good Payers (Unit/Kontrak Tanpa Tunggakan AR > 7)
+                if ((statusCode === 'AC' || statusCode === 'PT') && val7 === 0) {
+                    goodPayerMap[cName] = (goodPayerMap[cName] || 0) + 1;
+                }
             });
 
             document.getElementById('ar7-val').innerText = `${ar7Count} Kr`;
@@ -956,27 +986,48 @@
             document.getElementById('ar60-val').innerText = `${ar60Count} Kr`;
             document.getElementById('ar60-pct').innerText = `${totalArBase > 0 ? ((ar60Count/totalArBase)*100).toFixed(1) : 0}%`;
 
-            const top3Cust7 = Object.entries(custArMap[7]).sort((a,b)=>b[1]-a[1]).slice(0,3);
-            const top3Cust30 = Object.entries(custArMap[30]).sort((a,b)=>b[1]-a[1]).slice(0,3);
-            const top3Cust60 = Object.entries(custArMap[60]).sort((a,b)=>b[1]-a[1]).slice(0,3);
-
             const custContainer = document.getElementById('ar-top3-customer');
-            custContainer.innerHTML = `
-                <div class="space-y-1">
-                    <div class="flex items-center justify-between text-xs border-b border-slate-800 pb-0.5">
-                        <span class="text-yellow-400 font-semibold">&gt;7 Days:</span>
-                        <span class="text-slate-200 font-mono">${top3Cust7.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
+            const custTitle = document.getElementById('ar-top3-customer-title');
+
+            if (customerViewMode === 'AR') {
+                custTitle.innerText = "Top 3 Customer (AR > 7 / > 30 / > 60):";
+                custTitle.className = "text-xs text-slate-400 uppercase font-bold tracking-wider mb-1";
+
+                const top3Cust7 = Object.entries(custArMap[7]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+                const top3Cust30 = Object.entries(custArMap[30]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+                const top3Cust60 = Object.entries(custArMap[60]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+                custContainer.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between text-xs border-b border-slate-800 pb-0.5">
+                            <span class="text-yellow-400 font-semibold">&gt;7 Days:</span>
+                            <span class="text-slate-200 font-mono">${top3Cust7.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs border-b border-slate-800 pb-0.5">
+                            <span class="text-amber-400 font-semibold">&gt;30 Days:</span>
+                            <span class="text-slate-200 font-mono">${top3Cust30.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-rose-400 font-semibold">&gt;60 Days:</span>
+                            <span class="text-slate-200 font-mono">${top3Cust60.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
+                        </div>
                     </div>
-                    <div class="flex items-center justify-between text-xs border-b border-slate-800 pb-0.5">
-                        <span class="text-amber-400 font-semibold">&gt;30 Days:</span>
-                        <span class="text-slate-200 font-mono">${top3Cust30.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
+                `;
+            } else {
+                custTitle.innerText = "Top 3 Good Payers (Zero Overdue AR):";
+                custTitle.className = "text-xs text-emerald-400 uppercase font-bold tracking-wider mb-1";
+
+                const top3Good = Object.entries(goodPayerMap).sort((a,b)=>b[1]-a[1]).slice(0,3);
+                
+                custContainer.innerHTML = `
+                    <div class="bg-emerald-950/30 p-2 rounded-lg border border-emerald-500/20 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-emerald-300 font-bold"><i class="fa-solid fa-star text-amber-400"></i> Top Performers:</span>
+                            <span class="text-emerald-400 font-mono font-bold">${top3Good.map(x => `${x[0]} (${x[1]} unit clean)`).join(' • ') || 'Tidak ada data'}</span>
+                        </div>
                     </div>
-                    <div class="flex items-center justify-between text-xs">
-                        <span class="text-rose-400 font-semibold">&gt;60 Days:</span>
-                        <span class="text-slate-200 font-mono">${top3Cust60.map(x => `${x[0]} (${x[1]})`).join(', ') || '-'}</span>
-                    </div>
-                </div>
-            `;
+                `;
+            }
 
             const top3Brand7 = Object.entries(brandArMap[7]).sort((a,b)=>b[1]-a[1]).slice(0,3);
             const top3Brand30 = Object.entries(brandArMap[30]).sort((a,b)=>b[1]-a[1]).slice(0,3);
