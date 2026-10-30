@@ -507,7 +507,7 @@
             });
         }
 
-        // PEMBACAAN FIELD DIPERBAIKI (BRAND = KOLOM Z, LOKASI = KOLOM M)
+        // PEMBACAAN FIELD DENGAN FALLBACK PINTAR UNTUK BRAND (Mencegah Angka Kosong)
         function getFieldValue(row, fieldType) {
             if (!row) return '';
             const keys = Object.keys(row);
@@ -521,18 +521,36 @@
                 return key ? String(row[key]).trim() : '';
             }
             
-            // PEMBACAAN DARI KOLOM Z (BRAND) DENGAN FILTER SAKLAK PENYARING PRODUK PEMBIAYAAN
+            // LOGIKA PINTAR PEMBACAAN BRAND UNIT
             if (fieldType === 'brand_unit') {
-                const key = keys.find(k => /^BRAND$/i.test(k.trim())) || 
-                            keys.find(k => /BRAND_UNIT|BRAND UNIT|^MERK$/i.test(k.trim()));
-                let val = key ? String(row[key]).trim() : '';
+                let key = keys.find(k => /^BRAND$/i.test(k.trim())) || 
+                          keys.find(k => /BRAND_UNIT|BRAND UNIT|^MERK$/i.test(k.trim()));
                 
-                // FILTER PENYARING TEKS PRODUK PEMBIAYAAN / FASILITAS
+                let val = key ? String(row[key]).trim() : '';
                 const isFacility = /^(ABF|FAC|FACTORING|FMU|GENERAL|FINANCING|AR FINANCING|-|NULL|UNDEFINED)$/i;
+
+                // jika Kolom Brand kosong / terisi jenis pembiayaan -> FALLBACK ke BTM (Kolom E)
                 if (!val || isFacility.test(val)) {
-                    return '-';
+                    const btmKey = keys.find(k => /^BTM$/i.test(k.trim())) || 
+                                   keys.find(k => /NAMA_UNIT|DESKRIPSI_UNIT|UNIT/i.test(k.trim()));
+                    val = btmKey ? String(row[btmKey]).trim() : '';
                 }
-                return val;
+
+                // Ekstrak nama merk utama dari deskripsi BTM (misal: "ISUZU TRUCK..." -> "ISUZU")
+                if (val && !isFacility.test(val)) {
+                    const brandMatch = val.match(/^(ISUZU|HINO|MITSUBISHI|KOBELCO|XCMG|JCB|SANY|CAT|CATERPILLAR|KOMATSU|UD TRUCKS|UD|SHACMAN|VOLVO|DAIHATSU|TOYOTA|SANWARD|HELI|LIUGONG|ZOOMLION|MERCEDES|MERCY|FAW|ZOMLION)/i);
+                    if (brandMatch) {
+                        let matched = brandMatch[0].toUpperCase();
+                        if (matched === 'MERCY') return 'MERCEDES';
+                        if (matched === 'CATERPILLAR') return 'CAT';
+                        return matched;
+                    }
+                    const firstWord = val.split(' ')[0].trim().toUpperCase();
+                    if (firstWord.length > 1 && !isFacility.test(firstWord)) {
+                        return firstWord;
+                    }
+                }
+                return '-';
             }
 
             // PEMBACAAN DARI KOLOM G (PRODUCT)
@@ -898,9 +916,6 @@
             const custArMap = { 7: {}, 30: {}, 60: {} };
             const brandArMap = { 7: {}, 30: {}, 60: {} };
 
-            // FILTER KAKU MURNI HANYA UNTUK REAL BRAND UNIT
-            const isFacilityPattern = /^(ABF|FAC|FACTORING|FMU|GENERAL|FINANCING|AR FINANCING|-|NULL|UNDEFINED)$/i;
-
             arBaseData.forEach(row => {
                 const val7 = getFieldValue(row, 'ar7');
                 const val30 = getFieldValue(row, 'ar30');
@@ -912,21 +927,21 @@
                 if (val7 >= 1) {
                     ar7Count++;
                     custArMap[7][cName] = (custArMap[7][cName] || 0) + 1;
-                    if (bName && bName !== '-' && !isFacilityPattern.test(bName)) {
+                    if (bName && bName !== '-') {
                         brandArMap[7][bName] = (brandArMap[7][bName] || 0) + 1;
                     }
                 }
                 if (val30 >= 1) {
                     ar30Count++;
                     custArMap[30][cName] = (custArMap[30][cName] || 0) + 1;
-                    if (bName && bName !== '-' && !isFacilityPattern.test(bName)) {
+                    if (bName && bName !== '-') {
                         brandArMap[30][bName] = (brandArMap[30][bName] || 0) + 1;
                     }
                 }
                 if (val60 >= 1) {
                     ar60Count++;
                     custArMap[60][cName] = (custArMap[60][cName] || 0) + 1;
-                    if (bName && bName !== '-' && !isFacilityPattern.test(bName)) {
+                    if (bName && bName !== '-') {
                         brandArMap[60][bName] = (brandArMap[60][bName] || 0) + 1;
                     }
                 }
@@ -1024,7 +1039,7 @@
 
             dataArray.forEach(item => {
                 const rawVal = getFieldValue(item, fieldType);
-                if (rawVal) {
+                if (rawVal && rawVal !== '-') {
                     const normalizedKey = normalizeEntityName(rawVal);
                     counts[normalizedKey] = (counts[normalizedKey] || 0) + 1;
                     if (!displayMap[normalizedKey]) {
